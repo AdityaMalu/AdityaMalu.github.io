@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aditya Malu</title>
+<meta name="description" content="Aditya Malu, backend engineer. Java, Spring Boot, Go, PostgreSQL, AWS.">
+<meta property="og:title" content="Aditya Malu">
+<meta property="og:description" content="Backend engineer. I worked on the database platform at Tessell.">
+<style>
+  :root {
+    --bg: #fdfdfc;
+    --text: #222;
+    --soft: #6b6b6b;
+    --line: #e8e6e1;
+    --link: #2f5bb7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141414;
+      --text: #e4e4e4;
+      --soft: #9a9a9a;
+      --line: #2c2c2c;
+      --link: #8fb0f0;
+      color-scheme: dark;
+    }
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 64px 20px 80px;
+  }
+  h1 { font-size: 28px; margin: 0 0 20px; }
+  h2 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--soft);
+    margin: 48px 0 16px;
+    font-weight: 600;
+  }
+  h3 { font-size: 17px; margin: 28px 0 4px; }
+  p { margin: 0 0 14px; }
+  a { color: var(--link); }
+  a:hover { text-decoration-thickness: 2px; }
+  .job { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px; margin: 28px 0 10px; }
+  .job h3 { margin: 0; }
+  .when { color: var(--soft); font-size: 15px; }
+  ul { padding-left: 20px; margin: 0 0 14px; }
+  li { margin-bottom: 6px; }
+  code { font-size: 15px; font-family: Consolas, Menlo, monospace; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 48px 0 20px; }
+  footer { color: var(--soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Hi, I'm Aditya.</h1>
+
+<p>I'm a backend engineer. For the past year I worked at <a href="https://www.tessell.com">Tessell</a>, a database-as-a-service company, on the part of the platform that changes customers' production databases: patching them, failing them over, resizing their storage. The goal was always the same: make the change without breaking anything. Most of my work was in Java and Spring Boot, with some Go, on PostgreSQL and AWS.</p>
+
+<p>I'm looking for my next backend role in Bengaluru, Pune, Hyderabad or remote, and I can start right away. The best way to reach me is <a href="mailto:adityamalu2509@gmail.com">adityamalu2509@gmail.com</a>.</p>
+
+<h2>Work</h2>
+
+<div class="job">
+  <h3>Tessell, Software Engineer</h3>
+  <span class="when">Jul 2025 – Sep 2026</span>
+</div>
+
+<p><strong>Oracle listener patching.</strong> On servers that host several Oracle databases, the shared listener kept running from the oldest Oracle Home. So it never got patched, and old homes could never be cleaned up. I built the feature that moves it to the newest home, including the API, the workflow, and handling for when the rollback itself fails. Downtime is capped at 10 minutes, and it now runs on 500+ servers.</p>
+
+<p><strong>DR drills.</strong> Customers need to prove their disaster recovery works for audits, but a real failover changes their setup for good. I wrote the rules for PostgreSQL drills, which fail over to the DR region, run there for a while and then switch back. 250+ services use them.</p>
+
+<p><strong>Licensing.</strong> I moved licenses and the script library from belonging to one subscription to being shared across many, and added pay-as-you-go licensing. It touched 5+ services and around 50 customers. Every data migration ran with zero downtime.</p>
+
+<p><strong>Bigger disks on gp3.</strong> Our AWS storage limits were hard-coded, so anything over 16 TiB was pushed onto io2, which costs about twice as much. I raised the limit to 64 TiB / 80k IOPS and made the gp3-or-io2 choice a per-customer setting that changes without a redeploy.</p>
+
+<p><strong>Java to Go.</strong> I helped port one of our core services to Go, which took memory per pod from 1.75 GB to 100 MB. My part was the licensing APIs. I wrote a 133-test suite, ran it against both versions, and fixed the 27 issues it turned up.</p>
+
+<p>Smaller things I'm glad I did: blocking unsafe changes to MySQL and Oracle settings that can only be set when a database is created, and building a small Spring Boot + React tool so SREs could add compute shapes themselves instead of asking on-call. That took a 30-minute chore down to 5.</p>
+
+<div class="job">
+  <h3>Sarvatra Technologies, Intern</h3>
+  <span class="when">Sep 2024 – May 2025</span>
+</div>
+
+<p>I built a digital-currency wallet that lives on an NFC smartcard: two Android apps in Java, a small APDU command protocol between card and phone, RSA/AES-secured sessions, and token locking so the same money can't be spent twice.</p>
+
+<h2>Projects</h2>
+
+<p><a href="https://github.com/AdityaMalu/Context_Aware"><strong>InfoCard</strong></a>. An NFC smart-card app that keeps identity, healthcare and ticketing data in separate blocks, so a reader only sees the block it's allowed to. Readers prove who they are with RSA challenge-response.</p>
+
+<h2>Other</h2>
+
+<p>I studied Computer Engineering at <a href="https://pict.edu">PICT</a>, Pune (2021–2025). I still enjoy competitive programming: 550+ problems on <a href="https://leetcode.com/u/AdityaMalu/">LeetCode</a>, Specialist on <a href="https://codeforces.com/profile/AdityaMalu">Codeforces</a>, 3★ on <a href="https://www.codechef.com/users/adityamalu">CodeChef</a>.</p>
+
+<p>Tools I use most: Java, Spring Boot, Go, PostgreSQL, MySQL, AWS, Kubernetes, Docker, JUnit and Cucumber.</p>
+
+<h2>Contact</h2>
+
+<p>Email <a href="mailto:adityamalu2509@gmail.com">adityamalu2509@gmail.com</a>, or find me on <a href="https://www.linkedin.com/in/aditya-malu-2aa0a022a">LinkedIn</a> and <a href="https://github.com/AdityaMalu">GitHub</a>.</p>
+
+<hr>
+<footer>Updated October 2026</footer>
+
+</main>
+</body>
+</html>
