@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311202b'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' font-weight='700' text-anchor='middle' fill='%23f2b880'%3Eam%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #11202b;
@@ -21,6 +21,9 @@
     --line: #253b4a;
     --accent: #f2b880;
     --accent-dim: rgba(242, 184, 128, 0.12);
+    --ok: #6fd3a8;
+    --bad: #ff8a7a;
+    --mono: "Fira Code", Consolas, monospace;
     --display: "Sora", "Segoe UI", sans-serif;
     --body: "Karla", "Segoe UI", sans-serif;
     --bar: 52px;
@@ -35,6 +38,8 @@
     --line: #e2dcd2;
     --accent: #b85c1e;
     --accent-dim: rgba(184, 92, 30, 0.10);
+    --ok: #12805c;
+    --bad: #c2412d;
     color-scheme: light;
   }
   * { box-sizing: border-box; }
@@ -77,14 +82,104 @@
   .home-inner { max-width: 1040px; margin: 0 auto; }
   .home h1 { font-family: var(--display); color: var(--bright); font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
   .lede { color: var(--soft); max-width: 40em; margin: 12px 0 32px; font-size: 17px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 18px; }
   .card {
     display: flex; flex-direction: column; gap: 10px; text-align: left;
     padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg-raise);
     transition: border-color .15s, transform .15s;
   }
   .card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .card svg { width: 64px; height: 40px; }
+
+  /* live demos on the cards */
+  .demo {
+    position: relative; height: 204px; padding: 12px 14px; margin-bottom: 4px; overflow: hidden; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+    font: 12.5px/1.45 var(--mono); color: var(--text);
+  }
+  .demo .cap { display: flex; justify-content: space-between; gap: 10px; color: var(--soft); font-size: 11.5px; white-space: nowrap; }
+  .demo .cap > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+  .demo .cap b { color: var(--bright); font-weight: 500; }
+  .demo .cap .r { flex: none; }
+  .demo .note {
+    position: absolute; left: 14px; right: 14px; bottom: 10px; color: var(--soft); font: 13px/1.3 var(--body);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .demo .note b { color: var(--bright); font-weight: 700; }
+  .demo .ok, .demo .note b.ok { color: var(--ok); }
+  .demo .bad, .demo .note b.bad { color: var(--bad); }
+
+  /* binary search */
+  .arr { position: relative; margin-top: 44px; --gap: 6px; }
+  .cells { display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--gap); }
+  .cell {
+    height: 36px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 7px;
+    background: var(--bg-raise); color: var(--bright); font-weight: 500;
+    transition: background .3s, border-color .3s, opacity .3s, color .3s, transform .3s;
+  }
+  .cell.out { opacity: .28; }
+  .cell.mid { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); transform: translateY(-2px); }
+  .cell.found { border-color: var(--ok); background: var(--ok); color: var(--bg); }
+  .ptr {
+    position: absolute; width: calc((100% - 7 * var(--gap)) / 8); left: calc(var(--i, 0) * ((100% - 7 * var(--gap)) / 8 + var(--gap)));
+    text-align: center; font-size: 11px; white-space: nowrap;
+    transition: left .45s cubic-bezier(.3,.7,.3,1), opacity .25s;
+  }
+  .ptr.mid { top: -19px; color: var(--accent); }
+  .ptr.lo, .ptr.hi { top: 41px; color: var(--soft); }
+
+  /* heap and stack */
+  .code { margin-top: 8px; }
+  .code div { padding: 0 6px; border-radius: 0 4px 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .25s, box-shadow .25s; }
+  .code div.cur { background: var(--accent-dim); box-shadow: inset 2px 0 0 var(--accent); color: var(--bright); }
+  .code i { font-style: normal; color: var(--soft); display: inline-block; width: 16px; }
+  .code .k { color: var(--accent); }
+  .mem { display: grid; grid-template-columns: 1fr 1.7fr; gap: 10px; margin-top: 10px; }
+  .mem .col { border: 1px dashed var(--line); border-radius: 7px; padding: 5px 8px; height: 58px; min-width: 0; }
+  .mem .h { font: 600 10px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); margin-bottom: 3px; white-space: nowrap; }
+  .slot { display: flex; justify-content: space-between; gap: 6px; }
+  .obj {
+    border: 1px solid var(--accent); border-radius: 6px; padding: 1px 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity .45s, transform .45s, border-color .3s;
+  }
+  .obj.none { opacity: 0; transform: scale(.85); }
+  .obj.unreach { border-style: dashed; border-color: var(--bad); opacity: .75; }
+  .obj.gone { opacity: 0; transform: translateY(6px) scale(.9); }
+  .obj .e { color: var(--accent); }
+
+  /* B+ tree */
+  .tree { position: relative; height: 110px; margin-top: 16px; }
+  .tree svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .tree line { stroke: var(--line); stroke-width: 1.5; vector-effect: non-scaling-stroke; transition: stroke .3s; }
+  .tree line.on { stroke: var(--accent); stroke-width: 2.5; }
+  .node {
+    position: absolute; transform: translateX(-50%); display: flex; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg-raise); color: var(--bright); overflow: hidden; transition: border-color .3s, box-shadow .3s;
+  }
+  .node span { padding: 3px 6px; border-left: 1px solid var(--line); transition: background .3s, color .3s; }
+  .node span:first-child { border-left: 0; }
+  .node.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .node span.hit { background: var(--ok); color: var(--bg); }
+
+  /* test run */
+  .tests { display: grid; gap: 4px; margin-top: 8px; }
+  .t { display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; }
+  .t .d {
+    width: 13px; height: 13px; flex: none; border-radius: 50%; border: 1.5px solid var(--line);
+    display: grid; place-items: center; font: 700 8px/1 var(--body); color: var(--bg); transition: background .2s, border-color .2s;
+  }
+  .t.run .d { border-top-color: var(--accent); animation: spin .7s linear infinite; }
+  .t.pass .d { background: var(--ok); border-color: var(--ok); }
+  .t.pass .d::after { content: "\2713"; }
+  .t.fail .d { background: var(--bad); border-color: var(--bad); }
+  .t.fail .d::after { content: "\2715"; }
+  .t .nm { overflow: hidden; text-overflow: ellipsis; flex: none; }
+  .t.pass .nm { color: var(--bright); }
+  .t .m { color: var(--bad); font-size: 11px; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .diff { margin-top: 7px; font-size: 11.5px; opacity: 0; transition: opacity .3s; }
+  .diff.show { opacity: 1; }
+  .diff div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   .card h2 { font-family: var(--display); color: var(--bright); font-size: 19px; margin: 0; }
   .card p { margin: 0; color: var(--text); }
   .card .stat { color: var(--soft); font-size: 14px; }
@@ -109,6 +204,11 @@
     .tab .sm { display: inline; }
     .bar { padding: 0 6px; gap: 4px; }
     .home { padding-top: 32px; }
+    .card { padding: 16px; }
+    .demo { padding: 10px; font-size: 11.5px; }
+    .demo .note { left: 10px; right: 10px; font-size: 12px; }
+    .arr { --gap: 4px; }
+    .node span { padding: 3px 4px; }
   }
 </style>
 </head>
@@ -147,20 +247,16 @@
   const APPS = [
     { key: 'algo', name: 'AlgoScope', short: 'Algo', path: '/algoscope/', repo: 'AdityaMalu/algoscope',
       blurb: 'Animated traces of 159 DSA interview problems, recorded from real Java runs, with Python and C++ versions.',
-      stat: 'Arrays · graphs · DP · trees · and more',
-      icon: '<rect x="4" y="16" width="12" height="12" rx="2"/><rect x="18" y="16" width="12" height="12" rx="2"/><rect x="32" y="16" width="12" height="12" rx="2"/><rect x="46" y="16" width="12" height="12" rx="2"/><path d="M24 4v7M21 8l3 3 3-3M52 38v-6M49 35l3-3 3 3"/>' },
+      stat: 'Arrays · graphs · DP · trees · and more' },
     { key: 'java', name: 'Java Stepper', short: 'Java', full: 'Java Concepts Stepper', path: '/java-visualizer/', repo: 'AdityaMalu/java-visualizer',
       blurb: 'Debugger-style walkthroughs of the JVM, collections, OOP and patterns, concurrency, Spring and JPA.',
-      stat: 'Quiz after every topic',
-      icon: '<path d="M8 6h28M14 14h24M14 22h18M8 30h14"/><path d="M2 20l4 2-4 2z"/><rect x="44" y="6" width="18" height="28" rx="3"/><path d="M50 14l7 6-7 6z"/>' },
+      stat: 'Quiz after every topic' },
     { key: 'db', name: 'DB Stepper', short: 'DB', full: 'DB Concepts Stepper', path: '/DBVisualizer/', repo: 'AdityaMalu/DBVisualizer',
       blurb: '71 database topics from SQL to distributed systems, with runnable SQLite examples, auto-checked exercises and quizzes.',
-      stat: 'Indexes · transactions · MVCC · sharding',
-      icon: '<ellipse cx="32" cy="8" rx="20" ry="5"/><path d="M12 8v24c0 2.8 9 5 20 5s20-2.2 20-5V8"/><path d="M12 20c0 2.8 9 5 20 5s20-2.2 20-5"/>' },
+      stat: 'Indexes · transactions · MVCC · sharding' },
     { key: 'lab', name: 'Machine Coding', short: 'LLD', full: 'MachineCodingLab', origin: 'https://machine-coding-lab.onrender.com', path: '/', repo: 'AdityaMalu/machine-coding-lab',
       blurb: '18 machine coding and LLD tasks (rate limiter, LRU cache, job queue…). Edit in the browser and run real test suites in Java, Python, Go or C++.',
-      stat: 'Runs on a free server: the first load can take ~30 s',
-      icon: '<rect x="4" y="4" width="56" height="32" rx="4"/><path d="M14 14l-5 6 5 6M50 14l5 6-5 6M36 11l-8 18"/>' },
+      stat: 'Runs on a free server: the first load can take ~30 s' },
   ];
   const byKey = Object.fromEntries(APPS.map(a => [a.key, a]));
   const $ = id => document.getElementById(id);
@@ -176,7 +272,186 @@
     else if (matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light';
   } catch (e) {}
 
-  const svg = inner => `<svg viewBox="0 0 64 40" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  // ---------- live demos on the Home cards: each is a list of frames plus a render(frame) over DOM built once
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const h = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content; };
+
+  const DEMOS = {
+    algo: (() => {
+      const A = [1, 3, 5, 8, 13, 21, 34, 55];
+      const frames = [];
+      for (const target of [21, 5, 34]) {
+        let lo = 0, hi = A.length - 1, steps = 0;
+        frames.push({ target, lo, hi, mid: null, note: `Search <b>a[${lo}..${hi}]</b> for ${target}`, ms: 900 });
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          steps++;
+          if (A[mid] === target) {
+            frames.push({ target, lo, hi, mid, note: `mid = ${mid}: a[${mid}] = ${A[mid]}` });
+            frames.push({ target, lo, hi, mid, found: true, note: `<b class="ok">Found ${target}</b> at index ${mid} in ${steps} steps, not ${mid + 1}`, ms: 2000 });
+            break;
+          }
+          const right = A[mid] < target;
+          frames.push({ target, lo, hi, mid, note: `a[${mid}] = ${A[mid]} ${right ? '<' : '>'} ${target}: drop the ${right ? 'left' : 'right'} half` });
+          if (right) lo = mid + 1; else hi = mid - 1;
+          frames.push({ target, lo, hi, mid: null, note: `<b>${right ? 'lo' : 'hi'}</b> moves to ${right ? lo : hi}`, ms: 800 });
+        }
+      }
+      return {
+        frames, still: 4,
+        build(el) {
+          el.append(h(`<div class="cap"><span>binary search</span><span class="r">target = <b class="tg"></b></span></div>
+            <div class="arr"><div class="cells">${A.map(v => `<div class="cell">${v}</div>`).join('')}</div>
+            <div class="ptr mid">mid ▾</div><div class="ptr lo">▴ lo</div><div class="ptr hi">▴ hi</div></div>
+            <div class="note"></div>`));
+          const cells = [...el.querySelectorAll('.cell')], P = k => el.querySelector('.ptr.' + k);
+          return f => {
+            el.querySelector('.tg').textContent = f.target;
+            cells.forEach((c, i) => {
+              c.className = 'cell' + (i < f.lo || i > f.hi ? ' out' : '') + (i === f.mid ? (f.found ? ' found' : ' mid') : '');
+            });
+            P('lo').style.setProperty('--i', f.lo);
+            P('hi').style.setProperty('--i', f.hi);
+            P('hi').style.opacity = f.lo === f.hi ? 0 : 1;
+            P('lo').textContent = f.lo === f.hi ? '▴ lo=hi' : '▴ lo';
+            P('mid').style.opacity = f.mid == null ? 0 : 1;
+            if (f.mid != null) P('mid').style.setProperty('--i', f.mid);
+            el.querySelector('.note').innerHTML = f.note;
+          };
+        },
+      };
+    })(),
+
+    java: {
+      frames: [
+        { line: 0, slot: '', obj: 'none', note: 'One object, from <b>new</b> to garbage collection', ms: 1000 },
+        { line: 1, slot: '→ #1', obj: 'alive', e: false, note: '<b>new</b> puts a HashMap on the heap; <b>m</b> points at it' },
+        { line: 2, slot: '→ #1', obj: 'alive', e: true, note: '<b>put</b> hashes "java" into one of its buckets' },
+        { line: 3, slot: 'null', obj: 'unreach', e: true, note: 'Nothing points at #1 now: <b class="bad">unreachable</b>', ms: 1600 },
+        { line: 4, slot: 'null', obj: 'gone', e: true, note: '<b class="ok">The GC reclaims #1</b> and frees its memory', ms: 1900 },
+      ],
+      still: 3,
+      build(el) {
+        el.append(h(`<div class="cap"><span>Main.java</span><span class="r">JVM memory</span></div>
+          <div class="code">
+            <div><i>1</i>Map&lt;String,Integer&gt; m = <span class="k">new</span> HashMap&lt;&gt;();</div>
+            <div><i>2</i>m.put("java", 21);</div>
+            <div><i>3</i>m = <span class="k">null</span>;</div>
+            <div><i>4</i>System.gc();</div>
+          </div>
+          <div class="mem">
+            <div class="col"><div class="h">Stack · main()</div><div class="slot"><span>m</span><span class="v">—</span></div></div>
+            <div class="col"><div class="h">Heap</div><div class="obj none">#1 HashMap <span class="e"></span></div></div>
+          </div>
+          <div class="note"></div>`));
+        const lines = [...el.querySelectorAll('.code div')], v = el.querySelector('.slot .v'), o = el.querySelector('.obj');
+        return f => {
+          lines.forEach((d, i) => d.classList.toggle('cur', i === f.line - 1));
+          v.textContent = f.slot || '—';
+          v.className = 'v' + (f.slot === 'null' ? ' bad' : f.slot ? ' ok' : '');
+          o.className = 'obj ' + f.obj;
+          o.querySelector('.e').textContent = f.e ? '{java=21}' : '{}';
+          el.querySelector('.note').innerHTML = f.note;
+        };
+      },
+    },
+
+    db: (() => {
+      const LEAVES = [[10, 15, 20], [40, 45, 50], [70, 72, 80]];
+      const frames = [];
+      for (const [key, leaf] of [[45, 1], [72, 2], [15, 0]]) {
+        const why = leaf === 0 ? `${key} < 30` : leaf === 1 ? `30 ≤ ${key} < 60` : `${key} ≥ 60`;
+        frames.push({ key, step: 0, note: `Look up <b>id = ${key}</b> with the index`, ms: 900 });
+        frames.push({ key, step: 1, leaf, note: `Root page: ${why}, so follow pointer ${leaf + 1}` });
+        frames.push({ key, step: 2, leaf, note: `Read leaf page ${leaf + 1}`, ms: 900 });
+        frames.push({ key, step: 3, leaf, note: `<b class="ok">Found in 2 page reads</b>, no full table scan`, ms: 1900 });
+      }
+      return {
+        frames, still: 3,
+        build(el) {
+          const xs = [17, 50, 83];
+          el.append(h(`<div class="cap"><span>SELECT * FROM users WHERE id = <b class="k"></b></span><span class="r">B+ tree</span></div>
+            <div class="tree">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">${xs.map(x => `<line x1="50" y1="24" x2="${x}" y2="70"/>`).join('')}</svg>
+              <div class="node root" style="left:50%;top:0"><span>30</span><span>60</span></div>
+              ${LEAVES.map((l, i) => `<div class="node leaf" style="left:${xs[i]}%;top:77px">${l.map(k => `<span>${k}</span>`).join('')}</div>`).join('')}
+            </div>
+            <div class="note"></div>`));
+          const root = el.querySelector('.root'), leaves = [...el.querySelectorAll('.leaf')], edges = [...el.querySelectorAll('line')];
+          return f => {
+            el.querySelector('.cap .k').textContent = f.key;
+            root.classList.toggle('on', f.step >= 1);
+            edges.forEach((e, i) => e.classList.toggle('on', f.step >= 2 && i === f.leaf));
+            leaves.forEach((l, i) => {
+              l.classList.toggle('on', f.step >= 2 && i === f.leaf);
+              [...l.children].forEach(sp => sp.classList.toggle('hit', f.step >= 3 && i === f.leaf && +sp.textContent === f.key));
+            });
+            el.querySelector('.note').innerHTML = f.note;
+          };
+        },
+      };
+    })(),
+
+    lab: (() => {
+      const T = ['allowsBurstUpToCapacity', 'refillsOverTime', 'rejectsWhenBucketEmpty', 'isThreadSafe'];
+      const frames = [], st = T.map(() => 'idle');
+      const push = (extra, ms) => frames.push({ st: [...st], ...extra, ms });
+      push({ run: 1, note: 'Run the tests against your <b>RateLimiter</b>' }, 900);
+      T.forEach((_, i) => {
+        st[i] = 'run'; push({ run: 1, note: 'Running tests…' }, 450);
+        st[i] = i === 1 ? 'fail' : 'pass'; push({ run: 1, note: 'Running tests…' }, 350);
+      });
+      push({ run: 1, sum: '3/4 passed', bad: true, note: '<b class="bad">1 failing:</b> the bucket overfills after a long idle' }, 2000);
+      push({ run: 1, sum: '3/4 passed', bad: true, diff: true, note: 'Fix: cap the refill at <b>capacity</b>' }, 2100);
+      T.forEach((_, i) => { st[i] = 'idle'; });
+      push({ run: 2, diff: true, note: 'Run them again…' }, 500);
+      T.forEach((_, i) => {
+        st[i] = 'run'; push({ run: 2, diff: true, note: 'Running tests…' }, 350);
+        st[i] = 'pass'; push({ run: 2, diff: true, note: 'Running tests…' }, 250);
+      });
+      push({ run: 2, sum: '4/4 passed', diff: true, note: '<b class="ok">All green.</b> Build it, break it, fix it.' }, 2500);
+      return {
+        frames, still: 10,
+        build(el) {
+          el.append(h(`<div class="cap"><span>RateLimiterTest · Java</span><span class="r sum"></span></div>
+            <div class="tests">${T.map(n => `<div class="t"><span class="d"></span><span class="nm">${n}</span><span class="m"></span></div>`).join('')}</div>
+            <div class="diff"><div class="bad">- tokens += elapsed * rate;</div><div class="ok">+ tokens = Math.min(capacity, tokens + elapsed * rate);</div></div>
+            <div class="note"></div>`));
+          const rows = [...el.querySelectorAll('.t')], sum = el.querySelector('.sum');
+          return f => {
+            rows.forEach((r, i) => {
+              r.className = 't ' + f.st[i];
+              r.querySelector('.m').textContent = f.st[i] === 'fail' ? 'expected ≤ 5 tokens, was 7' : '';
+            });
+            sum.textContent = f.sum || 'run ' + f.run;
+            sum.className = 'r sum' + (f.sum ? (f.bad ? ' bad' : ' ok') : '');
+            el.querySelector('.diff').classList.toggle('show', !!f.diff);
+            el.querySelector('.note').innerHTML = f.note;
+          };
+        },
+      };
+    })(),
+  };
+
+  // a demo advances only while the Home tab is showing, the page is visible and the card is on screen
+  const onScreen = new WeakMap();
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver(es => es.forEach(e => onScreen.set(e.target, e.isIntersecting)), { threshold: 0.3 })
+    : null;
+  function startDemo(el, demo) {
+    const render = demo.build(el), F = demo.frames;
+    if (reduceMotion) { render(F[demo.still]); return; }
+    let i = 0;
+    render(F[0]);
+    if (io) io.observe(el);
+    const tick = () => {
+      if (current !== 'home' || document.hidden || (io && !onScreen.get(el))) return setTimeout(tick, 400);
+      i = (i + 1) % F.length;
+      render(F[i]);
+      setTimeout(tick, F[i].ms || 1300);
+    };
+    setTimeout(tick, F[0].ms || 1300);
+  }
 
   // tabs + home cards
   const mkTab = (key, label, short) => {
@@ -190,12 +465,13 @@
     mkTab(a.key, a.name, a.short);
     const c = document.createElement('div');
     c.className = 'card';
-    c.innerHTML = `${svg(a.icon)}<h2>${a.full || a.name}</h2><p>${a.blurb}</p><p class="stat">${a.stat}</p>
+    c.innerHTML = `<div class="demo" aria-hidden="true" title="Open ${a.full || a.name}"></div><h2>${a.full || a.name}</h2><p>${a.blurb}</p><p class="stat">${a.stat}</p>
       <div class="row"><button type="button" class="go">Open here →</button>
       <a href="${(a.origin || '') + a.path}" target="_blank" rel="noopener">Own page ↗</a>
       <a href="https://github.com/${a.repo}" target="_blank" rel="noopener">Source</a></div>`;
-    c.querySelector('.go').onclick = () => show(a.key);
+    c.querySelector('.go').onclick = c.querySelector('.demo').onclick = () => show(a.key);
     cards.appendChild(c);
+    startDemo(c.querySelector('.demo'), DEMOS[a.key]);
   }
 
   // URL format: /prep/?a=<key>[&p=<sub/path/>]#<the tool's own hash>
