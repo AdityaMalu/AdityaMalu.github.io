@@ -203,7 +203,6 @@
   .daily { position: relative; }
   .dhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
   .dlabel { font: 700 13px var(--display); color: var(--bright); letter-spacing: .02em; }
-  .dlabel.practice { color: var(--soft); }
   .streak { display: inline-flex; align-items: center; gap: 5px; font: 600 13px var(--mono); color: var(--soft); padding: 3px 9px; border-radius: 99px; background: var(--bg); }
   .streak.on { color: var(--accent); background: var(--accent-dim); }
   .streak svg { width: 14px; height: 14px; }
@@ -227,9 +226,9 @@
   .dres .verdict.ok { color: var(--ok); } .dres .verdict.bad { color: var(--bad); }
   .dwhy { color: var(--text); }
   .dacts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; font-size: 14px; }
-  .dacts button { color: var(--soft); }
+  .dacts .next { color: var(--soft); }
   .dacts button.main { color: var(--accent); font-weight: 700; }
-  .dacts button:hover { color: var(--accent); }
+  .dacts button:hover { text-decoration: underline; }
   .dskel { height: 210px; border-radius: 8px; background: linear-gradient(90deg, var(--bg) 0%, var(--line) 50%, var(--bg) 100%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; opacity: .5; }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
@@ -256,28 +255,30 @@
 
   /* ---------- drag-to-sort concepts ---------- */
   .float-layer { position: fixed; left: 0; right: 0; top: var(--bar); bottom: 0; pointer-events: none; z-index: 5; overflow: hidden; }
-  .tray { display: none; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; min-height: 0; }
-  .tray.on { display: flex; }
+  .tray {
+    display: none; position: relative; height: 160px; margin: 0 0 18px; overflow: hidden;
+    border: 1px dashed var(--line); border-radius: 14px; background: color-mix(in srgb, var(--bg-raise) 55%, transparent);
+  }
+  .tray.on { display: block; }
+  .tray::before { content: "drifting concepts"; position: absolute; right: 12px; bottom: 8px; font: 11px var(--mono); color: var(--soft); opacity: .7; }
   .chip {
-    position: absolute; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+    position: absolute; left: 0; top: 0; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; will-change: transform;
     display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 99px;
     border: 1px solid var(--line); background: var(--bg-raise); color: var(--bright);
     font: 500 13.5px var(--mono); white-space: nowrap; cursor: grab;
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    animation: bob var(--dur, 6s) ease-in-out var(--delay, 0s) infinite;
-    transition: opacity .3s, transform .3s, box-shadow .2s, border-color .2s, left .5s cubic-bezier(.3,.7,.3,1), top .5s cubic-bezier(.3,.7,.3,1);
+    transition: opacity .3s, box-shadow .2s, border-color .2s;
   }
   .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .8; }
-  .tray .chip { position: relative; animation: none; box-shadow: none; }
+  .tray .chip { box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+  .chip.settle { transition: transform .45s cubic-bezier(.3,.7,.3,1), opacity .3s; }
   .chip:hover { border-color: var(--accent); }
   .chip.armed { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .chip.dragging {
-    position: fixed; z-index: 50; cursor: grabbing; animation: none; transition: none; pointer-events: none;
+    position: fixed; z-index: 50; cursor: grabbing; transition: none; pointer-events: none;
     transform: scale(1.08) rotate(-2deg); box-shadow: 0 14px 34px rgba(0,0,0,.35); border-color: var(--accent);
   }
-  .chip.enter { opacity: 0; transform: scale(.6); }
-  .chip.gone { opacity: 0; transform: scale(.4); }
-  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+  .chip.enter, .chip.gone { opacity: 0; }
 
   .card { position: relative; }
   .card.drop-over { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); transform: translateY(-3px); }
@@ -326,7 +327,7 @@
     .tiles { grid-template-columns: 1fr; gap: 8px; }
     .tile { padding: 8px 10px; }
     .tile .ring { width: 42px; height: 42px; }
-    .tray { gap: 8px; }
+    .tray { height: 190px; }
     .tray .chip { font-size: 12.5px; padding: 7px 11px; }
   }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -711,7 +712,7 @@
     $('tab-' + key).scrollIntoView({ block: 'nearest', inline: 'nearest' });
     document.title = key === 'home' ? 'Interview Prep · Aditya Malu' : (byKey[key].full || byKey[key].name) + ' · Interview Prep';
     sync();
-    if (key === 'home') renderProgress();
+    if (key === 'home') { renderProgress(); if (mode) layout(); }
     if (key !== 'home') try { frames[key].contentWindow.focus(); } catch (e) {}
   }
 
@@ -807,23 +808,23 @@
       t.quiz.forEach((q, i) => { if (q[4] !== 'H') POOL.push({ key, t, q, i }); });
     return POOL;
   }
+  /** Days in a row answered correctly; a wrong answer or a missed day starts it again. */
   function streakNow() {
     const s = store.get('prep:daily', {});
     return s.last && dayNum(dayStr()) - dayNum(s.last) <= 1 ? s.streak || 0 : 0;
   }
-  let dailyMode = 'today';
-  function renderDaily(item, practice) {
+  function renderDaily(item) {
     const el = $('daily');
     if (!item) { el.innerHTML = `<p class="dsrc">The question of the day couldn't load. Try again later.</p>`; return; }
     const today = dayStr(), saved = store.get('prep:daily', {});
-    const answered = !practice && saved.today && saved.today.date === today ? saved.today : null;
+    const answered = saved.today && saved.today.date === today ? saved.today : null;
     const [q, opts, ans, why] = item.q, app = byKey[item.key];
     const order = opts.map((_, i) => i);
-    const r = rng(practice ? (Math.random() * 1e9) | 0 : dayNum(today));
+    const r = rng(dayNum(today));
     for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
     const st = streakNow();
-    el.innerHTML = `<div class="dhead"><span class="dlabel${practice ? ' practice' : ''}">${practice ? 'Practice question' : 'Question of the day'}</span>
-        <span class="streak${st ? ' on' : ''}" title="Days in a row you've answered the question of the day">${flame}${st} day${st === 1 ? '' : 's'}</span></div>
+    el.innerHTML = `<div class="dhead"><span class="dlabel">Question of the day</span>
+        <span class="streak${st ? ' on' : ''}" title="Days in a row you've answered the question of the day correctly">${flame}${st} day${st === 1 ? '' : 's'}</span></div>
       <div class="dsrc">${esc(app.full)} · ${esc(item.t.no)} ${esc(item.t.title)}</div>
       <div class="dq">${q}</div>
       <div class="dopts">${order.map((oi, k) => `<button type="button" class="dopt" data-i="${oi}"><span class="l">${'ABCD'[k]}</span><span>${opts[oi]}</span></button>`).join('')}</div>
@@ -836,26 +837,25 @@
       const ok = pick === ans, res = el.querySelector('.dres');
       res.hidden = false;
       res.innerHTML = `<span class="verdict ${ok ? 'ok' : 'bad'}">${ok ? 'Correct.' : 'Not quite.'}</span> <span class="dwhy">${why}</span>
-        <div class="dacts"><button type="button" class="main learn">Learn this topic →</button><button type="button" class="more">Practice another</button>${practice ? '<button type="button" class="back">Back to today\'s</button>' : ''}</div>`;
+        <div class="dacts"><button type="button" class="main learn">Learn this topic →</button><span class="next">Next question tomorrow</span></div>`;
       res.querySelector('.learn').onclick = () => openAt(item.key, '', '#' + item.t.id);
-      res.querySelector('.more').onclick = () => { const P = pool(); dailyMode = 'practice'; renderDaily(P[Math.floor(Math.random() * P.length)], true); };
-      if (practice) res.querySelector('.back').onclick = () => { dailyMode = 'today'; renderDaily(todays(), false); };
-      if (fresh && !practice) {
+      if (fresh) {
         const s = store.get('prep:daily', {});
         const gap = s.last ? dayNum(today) - dayNum(s.last) : 99;
-        if (gap !== 0) { s.streak = gap === 1 ? (s.streak || 0) + 1 : 1; s.last = today; }
+        s.streak = !ok ? 0 : gap === 1 ? (s.streak || 0) + 1 : 1;
+        s.last = today;
         s.best = Math.max(s.best || 0, s.streak);
         s.today = { date: today, pick, ok };
         store.set('prep:daily', s);
         const n = s.streak, badge = el.querySelector('.streak');
-        badge.classList.add('on'); badge.innerHTML = `${flame}${n} day${n === 1 ? '' : 's'}`;
+        badge.classList.toggle('on', n > 0); badge.innerHTML = `${flame}${n} day${n === 1 ? '' : 's'}`;
       }
     };
     el.querySelectorAll('.dopt').forEach(b => b.onclick = () => finish(+b.dataset.i, true));
     if (answered) finish(answered.pick, false);
   }
   function todays() { const P = pool(); return P && P.length ? P[(dayNum(dayStr()) * 7919) % P.length] : null; }
-  dataReady.then(() => renderDaily(todays(), false));
+  dataReady.then(() => renderDaily(todays()));
 
   // ---------- progress across the tools (the three same-origin tools share this site's storage)
   function ring(frac) {
@@ -959,61 +959,108 @@
     }
     return deck.pop();
   };
-  const SLOTS = 6;
-  function freeSlot() {
-    const used = new Set([...layer.querySelectorAll('.chip')].map(ch => ch.dataset.slot));
-    for (let s = 0; s < SLOTS; s++) if (!used.has(String(s))) return s;
-    return -1;
+
+  // ---- wandering: each chip drifts on a slowly turning heading, bounces off the edges of its zone,
+  // steers away from its neighbours and almost stops under the pointer so it's easy to grab
+  const moving = [];
+  let zones = [];
+  const box = () => mode === 'float' ? layer : tray;
+  const target = () => mode === 'float' ? 6 : innerWidth < 600 ? 4 : 5;
+  function computeZones() {
+    if (mode === 'float') {
+      const content = Math.min(1120, innerWidth - 32), g = (innerWidth - content) / 2, h = layer.clientHeight;
+      zones = [{ x0: 10, y0: 12, x1: g - 16, y1: h - 12 }, { x0: innerWidth - g + 16, y0: 12, x1: innerWidth - 10, y1: h - 12 }];
+    } else zones = [{ x0: 6, y0: 6, x1: tray.clientWidth - 6, y1: tray.clientHeight - 6 }];
   }
-  function placeFloating(ch) {
-    // three per side, spread down the gutters with some jitter
-    const s = +ch.dataset.slot, side = s % 2, row = s >> 1;
-    const content = Math.min(1120, innerWidth - 32), gutter = (innerWidth - content) / 2;
-    const w = ch.offsetWidth || 160, h = layer.clientHeight || innerHeight;
-    const maxX = Math.max(8, gutter - w - 18), jx = +ch.dataset.jx, jy = +ch.dataset.jy;
-    const x = side === 0 ? 14 + jx * (maxX - 14) : innerWidth - gutter + 4 + jx * (maxX - 14);
-    const y = h * (0.12 + row * 0.29) + jy * h * 0.12;
-    ch.dataset.x = x; ch.dataset.y = y;
-    ch.style.left = x + 'px'; ch.style.top = y + 'px';
+  const zoneOf = m => zones[m.z % zones.length];
+  function clampInto(m) {
+    const Z = zoneOf(m);
+    m.x = Math.min(Math.max(m.x, Z.x0), Math.max(Z.x0, Z.x1 - m.w));
+    m.y = Math.min(Math.max(m.y, Z.y0), Math.max(Z.y0, Z.y1 - m.h));
   }
-  function makeChip() {
+  const put = m => { m.ch.style.transform = `translate3d(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`; };
+  const turn = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+  let lastT = 0;
+  function step(t) {
+    const dt = Math.min(0.05, (t - (lastT || t)) / 1000); lastT = t;
+    if (current === 'home' && !document.hidden && !reduceMotion) {
+      for (const m of moving) {
+        if (m.held) continue;
+        const Z = zoneOf(m);
+        m.a += (Math.random() - 0.5) * 3 * dt;
+        for (const o of moving) {
+          if (o === m || o.held || o.z % zones.length !== m.z % zones.length) continue;
+          const dx = m.x + m.w / 2 - (o.x + o.w / 2), dy = m.y + m.h / 2 - (o.y + o.h / 2), d = Math.hypot(dx, dy);
+          if (d > 0 && d < 90) m.a += turn(Math.atan2(dy, dx), m.a) * 2 * dt;
+        }
+        const sp = m.sp * (m.hover ? 0.08 : 1);
+        m.x += Math.cos(m.a) * sp * dt; m.y += Math.sin(m.a) * sp * dt;
+        if (m.x < Z.x0) { m.x = Z.x0; m.a = Math.PI - m.a; }
+        else if (m.x > Z.x1 - m.w) { m.x = Math.max(Z.x0, Z.x1 - m.w); m.a = Math.PI - m.a; }
+        if (m.y < Z.y0) { m.y = Z.y0; m.a = -m.a; }
+        else if (m.y > Z.y1 - m.h) { m.y = Math.max(Z.y0, Z.y1 - m.h); m.a = -m.a; }
+      }
+      // wide chips can overlap even when their centres are far apart: push overlapping pairs apart
+      for (let i = 0; i < moving.length; i++) for (let j = i + 1; j < moving.length; j++) {
+        const p = moving[i], q = moving[j];
+        if (p.held || q.held || p.z % zones.length !== q.z % zones.length) continue;
+        const ox = Math.min(p.x + p.w, q.x + q.w) - Math.max(p.x, q.x) + 6, oy = Math.min(p.y + p.h, q.y + q.h) - Math.max(p.y, q.y) + 6;
+        if (ox <= 0 || oy <= 0) continue;
+        const k = Math.min(1, 60 * dt);
+        if (ox < oy) { const s = (p.x < q.x ? -1 : 1) * ox / 2 * k; p.x += s; q.x -= s; }
+        else { const s = (p.y < q.y ? -1 : 1) * oy / 2 * k; p.y += s; q.y -= s; }
+        clampInto(p); clampInto(q);
+      }
+      for (const m of moving) if (!m.held) put(m);
+    }
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  function addChip() {
+    if (moving.length >= target()) return;
     const i = draw(), c = CONCEPTS[i];
     const ch = document.createElement('button');
     ch.type = 'button'; ch.className = 'chip enter'; ch.dataset.i = i;
     ch.textContent = c[0];
     ch.setAttribute('aria-label', `Concept: ${c[0]}. Press to pick it up, then choose a tool card.`);
-    ch.style.setProperty('--dur', (5 + Math.random() * 3).toFixed(1) + 's');
-    ch.style.setProperty('--delay', (-Math.random() * 5).toFixed(1) + 's');
-    ch.dataset.jx = Math.random().toFixed(3); ch.dataset.jy = Math.random().toFixed(3);
+    box().appendChild(ch);
+    const left = moving.filter(m => m.z === 0).length;
+    const m = { ch, z: mode === 'float' && left > moving.length - left ? 1 : 0, a: Math.random() * Math.PI * 2, sp: 18 + Math.random() * 18, w: ch.offsetWidth, h: ch.offsetHeight };
+    const Z = zoneOf(m);
+    m.x = Z.x0 + Math.random() * Math.max(0, Z.x1 - Z.x0 - m.w);
+    m.y = Z.y0 + Math.random() * Math.max(0, Z.y1 - Z.y0 - m.h);
+    ch._m = m; moving.push(m); put(m);
+    ch.addEventListener('pointerenter', () => { m.hover = true; });
+    ch.addEventListener('pointerleave', () => { m.hover = false; });
     wireChip(ch);
-    return ch;
+    requestAnimationFrame(() => requestAnimationFrame(() => ch.classList.remove('enter')));
   }
-  function addChip() {
-    if (mode === 'float') {
-      const s = freeSlot(); if (s < 0) return;
-      const ch = makeChip(); ch.dataset.slot = s;
-      layer.appendChild(ch); placeFloating(ch);
-    } else {
-      if (tray.children.length >= 4) return;
-      tray.appendChild(makeChip());
-    }
-    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.chip.enter').forEach(c => c.classList.remove('enter'))));
+  function removeChip(ch) {
+    const k = moving.indexOf(ch._m);
+    if (k >= 0) moving.splice(k, 1);
+    ch.remove();
   }
   function layout() {
+    if (current !== 'home' && mode) return; // zones need the Home tab on screen; redone when it shows
     const content = Math.min(1120, innerWidth - 32), gutter = (innerWidth - content) / 2;
-    const want = gutter >= 190 ? 'float' : 'tray';
+    const want = gutter >= 230 ? 'float' : 'pond';
     $('sortHint').textContent = want === 'float'
-      ? 'Drag the floating concepts onto the tool they belong to.'
-      : 'Drag a concept onto the tool it belongs to, or tap it and then tap a card.';
+      ? 'Grab a floating concept and drop it on the tool it belongs to.'
+      : 'Grab a drifting concept and drop it on the tool it belongs to, or tap it and then tap a card.';
     if (want !== mode) {
+      const keep = moving.map(m => m.ch.dataset.i);
+      moving.length = 0; layer.innerHTML = ''; tray.innerHTML = '';
       mode = want;
-      const keep = [...document.querySelectorAll('.chip')].map(ch => ch.dataset.i);
-      layer.innerHTML = ''; tray.innerHTML = '';
-      tray.classList.toggle('on', mode === 'tray');
+      tray.classList.toggle('on', mode === 'pond');
+      computeZones();
       deck = deck.filter(i => !keep.includes(String(i)));
-      const n = mode === 'float' ? SLOTS : 4;
-      for (let k = 0; k < n; k++) addChip();
-    } else if (mode === 'float') layer.querySelectorAll('.chip').forEach(placeFloating);
+      for (let k = 0; k < target(); k++) addChip();
+    } else {
+      computeZones();
+      for (const m of moving) { m.w = m.ch.offsetWidth; m.h = m.ch.offsetHeight; clampInto(m); put(m); }
+      while (moving.length < target()) addChip();
+    }
   }
 
   // pointer drag (mouse, pen and touch); a press without movement picks the chip up for tap-to-place
@@ -1023,15 +1070,16 @@
       if (e.button !== 0) return;
       const r = ch.getBoundingClientRect();
       drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false, over: null };
-      ch.setPointerCapture(e.pointerId);
+      ch._m.held = true;
+      try { ch.setPointerCapture(e.pointerId); } catch (err) {}
     });
     ch.addEventListener('pointermove', e => {
       if (!drag || e.pointerId !== drag.id) return;
       if (!drag.moved) {
         if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
         drag.moved = true; disarm();
-        const r = ch.getBoundingClientRect();
-        ch.style.width = r.width + 'px';
+        ch.style.width = ch.offsetWidth + 'px';
+        ch.style.transform = '';
         ch.classList.add('dragging');
       }
       ch.style.left = e.clientX - drag.dx + 'px';
@@ -1042,12 +1090,14 @@
     const end = e => {
       if (!drag || e.pointerId !== drag.id) return;
       const d = drag; drag = null;
-      if (!d.moved) return;
+      if (!d.moved) { if (armed !== ch) ch._m.held = false; return; }
       ch._dragged = true; setTimeout(() => { ch._dragged = false; }, 0);
       d.over?.classList.remove('drop-over');
-      ch.classList.remove('dragging'); ch.style.width = '';
-      if (d.over && e.type === 'pointerup') judge(ch, d.over.dataset.key, e.clientX, e.clientY);
-      else goHome(ch);
+      ch.classList.remove('dragging');
+      ch.style.width = ''; ch.style.left = ''; ch.style.top = '';
+      const cx = e.clientX - d.dx + ch._m.w / 2, cy = e.clientY - d.dy + ch._m.h / 2;
+      if (d.over && e.type === 'pointerup') judge(ch, d.over.dataset.key, e.clientX, e.clientY, cx, cy);
+      else goHome(ch, cx, cy);
     };
     ch.addEventListener('pointerup', end);
     ch.addEventListener('pointercancel', end);
@@ -1057,17 +1107,27 @@
       armed === ch ? disarm() : arm(ch);
     });
   }
-  function goHome(ch) {
-    if (ch.parentElement === layer) { ch.style.left = ch.dataset.x + 'px'; ch.style.top = ch.dataset.y + 'px'; }
-    else { ch.style.left = ''; ch.style.top = ''; }
+  /** Back into its zone, gliding from where it was let go (cx, cy: its centre on screen). */
+  function goHome(ch, cx, cy) {
+    const m = ch._m;
+    if (!m) return;
+    if (cx != null) {
+      const r = box().getBoundingClientRect();
+      m.x = cx - r.left - m.w / 2; m.y = cy - r.top - m.h / 2;
+      put(m); void ch.offsetWidth;
+    }
+    clampInto(m);
+    ch.classList.add('settle'); put(m);
+    setTimeout(() => { ch.classList.remove('settle'); m.held = armed === ch; }, 460);
   }
   function arm(ch) {
-    disarm(); armed = ch; ch.classList.add('armed');
+    disarm(); armed = ch; ch.classList.add('armed'); ch._m.held = true;
     document.body.classList.add('arming');
     document.querySelectorAll('.dropzone').forEach(z => { z.textContent = `Drop “${ch.textContent}” here`; });
   }
   function disarm() {
-    armed?.classList.remove('armed'); armed = null;
+    if (armed) { armed.classList.remove('armed'); armed._m.held = false; }
+    armed = null;
     document.body.classList.remove('arming');
   }
   document.querySelectorAll('.card[data-key] .dropzone').forEach(z => z.addEventListener('click', e => {
@@ -1109,7 +1169,7 @@
     clearTimeout(card._rt);
     card._rt = setTimeout(() => { if (!el.matches(':hover')) { el.classList.remove('show'); setTimeout(() => el.remove(), 400); } }, 9000);
   }
-  function judge(ch, key, x, y) {
+  function judge(ch, key, x, y, cx, cy) {
     const c = CONCEPTS[+ch.dataset.i], card = cardOf(key);
     if (c[1] === key) {
       score.sorted++; score.streak++; score.best = Math.max(score.best, score.streak);
@@ -1117,14 +1177,14 @@
       sparks(x, y);
       reveal(card, c, 'ok');
       ch.classList.add('gone');
-      setTimeout(() => { ch.remove(); addChip(); }, 320);
+      setTimeout(() => { removeChip(ch); addChip(); }, 320);
     } else {
       score.streak = 0;
       flash(card, 'nope', 600);
       const b = document.createElement('span');
       b.className = 'badge'; b.textContent = `✗ It's ${byKey[c[1]].name}`;
       card.appendChild(b); setTimeout(() => b.remove(), 1500);
-      goHome(ch);
+      goHome(ch, cx, cy);
       const right = cardOf(c[1]), rr = right.getBoundingClientRect();
       flash(right, 'hint', 3200);
       reveal(right, c, 'hint');
@@ -1134,7 +1194,7 @@
     showScore();
   }
   let rz;
-  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(layout, 150); });
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => current === 'home' && layout(), 150); });
   layout();
 
   const start = readUrl();
