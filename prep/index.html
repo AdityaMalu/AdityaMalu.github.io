@@ -179,6 +179,156 @@
   .diff.show { opacity: 1; }
   .diff div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- home: hero, question of the day, progress ---------- */
+  .home {
+    background-image: radial-gradient(var(--line) 1px, transparent 1.2px);
+    background-size: 26px 26px; background-attachment: local;
+  }
+  .home-inner { max-width: 1120px; position: relative; z-index: 1; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px; align-items: start; margin-bottom: 28px; }
+  .kicker { font: 600 12px var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 6px 0 10px; }
+  .home h1 span { color: var(--accent); }
+  .hero .lede { margin-bottom: 18px; }
+  .sortbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; color: var(--soft);
+    padding: 10px 14px; border: 1px dashed var(--line); border-radius: 10px; background: var(--bg-raise);
+  }
+  .sortbar svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
+  .sortbar #sortHint { flex: 1 1 220px; }
+  .sortbar .score { margin-left: auto; font-family: var(--mono); font-size: 12.5px; color: var(--text); }
+  .sortbar .score b { color: var(--ok); font-weight: 500; }
+
+  .panel { border: 1px solid var(--line); border-radius: 14px; background: var(--bg-raise); padding: 18px 20px; }
+  .daily { position: relative; }
+  .dhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .dlabel { font: 700 13px var(--display); color: var(--bright); letter-spacing: .02em; }
+  .dlabel.practice { color: var(--soft); }
+  .streak { display: inline-flex; align-items: center; gap: 5px; font: 600 13px var(--mono); color: var(--soft); padding: 3px 9px; border-radius: 99px; background: var(--bg); }
+  .streak.on { color: var(--accent); background: var(--accent-dim); }
+  .streak svg { width: 14px; height: 14px; }
+  .dsrc { font-size: 13px; color: var(--soft); margin-bottom: 6px; }
+  .dq { color: var(--bright); font-weight: 500; font-size: 16.5px; line-height: 1.45; margin-bottom: 12px; }
+  .dq code, .dwhy code, .dopt code { font: 13px var(--mono); background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+  .dopts { display: grid; gap: 7px; }
+  .dopt {
+    text-align: left; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg);
+    font-size: 15px; line-height: 1.35; color: var(--text); transition: border-color .15s, background .15s, transform .15s;
+    display: flex; gap: 10px; align-items: baseline;
+  }
+  .dopt .l { font: 600 12px var(--mono); color: var(--soft); flex: none; }
+  .dopt:not(:disabled):hover { border-color: var(--accent); transform: translateX(2px); }
+  .dopt:disabled { cursor: default; }
+  .dopt.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--bg)); color: var(--bright); }
+  .dopt.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, var(--bg)); }
+  .dopt.dim { opacity: .55; }
+  .dres { margin-top: 12px; font-size: 14.5px; }
+  .dres .verdict { font-weight: 700; }
+  .dres .verdict.ok { color: var(--ok); } .dres .verdict.bad { color: var(--bad); }
+  .dwhy { color: var(--text); }
+  .dacts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; font-size: 14px; }
+  .dacts button { color: var(--soft); }
+  .dacts button.main { color: var(--accent); font-weight: 700; }
+  .dacts button:hover { color: var(--accent); }
+  .dskel { height: 210px; border-radius: 8px; background: linear-gradient(90deg, var(--bg) 0%, var(--line) 50%, var(--bg) 100%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; opacity: .5; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .progress { margin-bottom: 22px; }
+  .phead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 14px; }
+  .phead h2 { font: 700 17px var(--display); color: var(--bright); margin: 0; }
+  .phead .muted { color: var(--soft); font-size: 13.5px; }
+  .phead .cont { margin-left: auto; font-weight: 700; color: var(--accent); font-size: 14.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .phead .cont:hover { text-decoration: underline; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .tile {
+    display: flex; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border-radius: 10px;
+    background: var(--bg); border: 1px solid transparent; transition: border-color .15s;
+  }
+  .tile:hover { border-color: var(--line); }
+  .ring { width: 52px; height: 52px; flex: none; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 5; }
+  .ring .track { stroke: var(--line); }
+  .ring .val { stroke: var(--accent); stroke-linecap: round; transition: stroke-dasharray .8s cubic-bezier(.3,.7,.3,1); }
+  .tile .n { font: 700 18px var(--display); color: var(--bright); line-height: 1.2; }
+  .tile .n small { font: 500 13px var(--body); color: var(--soft); }
+  .tile .lbl { font-size: 13px; color: var(--text); line-height: 1.3; }
+  .tile .sub { font-size: 12px; color: var(--soft); line-height: 1.3; }
+
+  /* ---------- drag-to-sort concepts ---------- */
+  .float-layer { position: fixed; left: 0; right: 0; top: var(--bar); bottom: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+  .tray { display: none; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; min-height: 0; }
+  .tray.on { display: flex; }
+  .chip {
+    position: absolute; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+    display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 99px;
+    border: 1px solid var(--line); background: var(--bg-raise); color: var(--bright);
+    font: 500 13.5px var(--mono); white-space: nowrap; cursor: grab;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    animation: bob var(--dur, 6s) ease-in-out var(--delay, 0s) infinite;
+    transition: opacity .3s, transform .3s, box-shadow .2s, border-color .2s, left .5s cubic-bezier(.3,.7,.3,1), top .5s cubic-bezier(.3,.7,.3,1);
+  }
+  .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .8; }
+  .tray .chip { position: relative; animation: none; box-shadow: none; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.armed { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .chip.dragging {
+    position: fixed; z-index: 50; cursor: grabbing; animation: none; transition: none; pointer-events: none;
+    transform: scale(1.08) rotate(-2deg); box-shadow: 0 14px 34px rgba(0,0,0,.35); border-color: var(--accent);
+  }
+  .chip.enter { opacity: 0; transform: scale(.6); }
+  .chip.gone { opacity: 0; transform: scale(.4); }
+  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+
+  .card { position: relative; }
+  .card.drop-over { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); transform: translateY(-3px); }
+  .card.got-it { border-color: var(--ok); animation: glow 1.1s ease-out; }
+  .card.nope { border-color: var(--bad); animation: shake .45s; }
+  .card.hint { border-color: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 20%, transparent); }
+  @keyframes glow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } 100% { box-shadow: 0 0 0 18px transparent; } }
+  @keyframes shake { 20%, 60% { translate: -7px 0; } 40%, 80% { translate: 7px 0; } }
+  .badge {
+    position: absolute; top: -12px; right: 16px; z-index: 3; padding: 3px 10px; border-radius: 99px;
+    font: 700 12.5px var(--body); color: var(--bg); background: var(--bad); pointer-events: none;
+    animation: pop .3s ease-out;
+  }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } }
+  .dropzone {
+    display: none; position: absolute; inset: 0; z-index: 4; border-radius: 14px; border: 2px dashed var(--accent);
+    background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--bright); font: 700 16px var(--display);
+    place-items: center; padding: 20px; text-align: center;
+  }
+  body.arming .dropzone { display: grid; }
+  .reveal {
+    position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 2; padding: 10px 12px; border-radius: 9px;
+    background: var(--bg-raise); border: 1px solid var(--ok); box-shadow: 0 10px 28px rgba(0,0,0,.3);
+    font: 14px/1.4 var(--body); color: var(--text); cursor: default;
+    transform: translateY(130%); transition: transform .35s cubic-bezier(.3,.7,.3,1);
+  }
+  .reveal.show { transform: none; }
+  .reveal.hint { border-color: var(--accent); }
+  .reveal .t { font-weight: 700; color: var(--bright); padding-right: 22px; }
+  .reveal .t .ok { color: var(--ok); }
+  .reveal p { margin: 3px 0 6px; }
+  .reveal .open { color: var(--accent); font-weight: 700; font-size: 13.5px; }
+  .reveal .x { position: absolute; top: 4px; right: 6px; width: 24px; height: 24px; color: var(--soft); font-size: 17px; }
+  .spark {
+    position: fixed; width: 7px; height: 7px; border-radius: 50%; pointer-events: none; z-index: 60;
+    background: var(--c, var(--ok)); animation: spark .7s ease-out forwards;
+  }
+  @keyframes spark { to { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; } }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 20px; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .panel { padding: 16px; }
+    .tiles { grid-template-columns: 1fr; gap: 8px; }
+    .tile { padding: 8px 10px; }
+    .tile .ring { width: 42px; height: 42px; }
+    .tray { gap: 8px; }
+    .tray .chip { font-size: 12.5px; padding: 7px 11px; }
+  }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   .card h2 { font-family: var(--display); color: var(--bright); font-size: 19px; margin: 0; }
   .card p { margin: 0; color: var(--text); }
@@ -232,11 +382,25 @@
 <main class="stage" id="stage">
   <section class="pane home" id="pane-home" role="tabpanel">
     <div class="home-inner">
-      <h1>Interview prep, step by step</h1>
-      <p class="lede">Four tools I built while preparing for backend interviews. Each one stays a separate app with its own repo, and they all open here. Every tab has its own link, so you can share a specific problem or topic.</p>
+      <div class="hero">
+        <div>
+          <p class="kicker">Backend interview prep</p>
+          <h1>Interview prep, <span>step by step</span></h1>
+          <p class="lede">Four tools I built while preparing for backend interviews: DSA, Java, databases and machine coding. Each one stays a separate app with its own repo, and they all open here with shareable links.</p>
+          <div class="sortbar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5M12 10V4a1.5 1.5 0 0 1 3 0v6M15 10V6a1.5 1.5 0 0 1 3 0v7a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.6-2.2L3.5 14a1.5 1.5 0 0 1 2.3-1.9L9 15V8a1.5 1.5 0 0 1 3 0"/></svg>
+            <span id="sortHint">Drag the floating concepts onto the tool they belong to.</span>
+            <span class="score" id="sortScore"></span>
+          </div>
+        </div>
+        <section class="panel daily" id="daily" aria-live="polite"><div class="dskel"></div></section>
+      </div>
+      <section class="panel progress" id="progress" aria-label="Your progress"></section>
+      <div class="tray" id="tray"></div>
       <div class="grid" id="cards"></div>
-      <p class="foot">Made by <a href="../">Aditya Malu</a>.</p>
+      <p class="foot">Made by <a href="../">Aditya Malu</a>. Progress, streaks and scores are saved in this browser only.</p>
     </div>
+    <div class="float-layer" id="floatLayer"></div>
   </section>
 </main>
 
@@ -465,7 +629,8 @@
     mkTab(a.key, a.name, a.short);
     const c = document.createElement('div');
     c.className = 'card';
-    c.innerHTML = `<div class="demo" aria-hidden="true" title="Open ${a.full || a.name}"></div><h2>${a.full || a.name}</h2><p>${a.blurb}</p><p class="stat">${a.stat}</p>
+    c.dataset.key = a.key;
+    c.innerHTML = `<button type="button" class="dropzone"></button><div class="demo" aria-hidden="true" title="Open ${a.full || a.name}"></div><h2>${a.full || a.name}</h2><p>${a.blurb}</p><p class="stat">${a.stat}</p>
       <div class="row"><button type="button" class="go">Open here →</button>
       <a href="${(a.origin || '') + a.path}" target="_blank" rel="noopener">Own page ↗</a>
       <a href="https://github.com/${a.repo}" target="_blank" rel="noopener">Source</a></div>`;
@@ -512,7 +677,7 @@
   function sync() {
     if (current === 'home') return writeUrl('home');
     const s = innerState(current);
-    if (s) writeUrl(current, s.sub, s.hash);
+    if (s) { writeUrl(current, s.sub, s.hash); rememberLast(current, s); }
     else writeUrl(current, readUrl().key === current ? readUrl().sub : '', readUrl().key === current ? location.hash : '');
     updateTools();
   }
@@ -546,6 +711,7 @@
     $('tab-' + key).scrollIntoView({ block: 'nearest', inline: 'nearest' });
     document.title = key === 'home' ? 'Interview Prep · Aditya Malu' : (byKey[key].full || byKey[key].name) + ' · Interview Prep';
     sync();
+    if (key === 'home') renderProgress();
     if (key !== 'home') try { frames[key].contentWindow.focus(); } catch (e) {}
   }
 
@@ -561,6 +727,10 @@
   // tools on another origin (the lab) report their path with postMessage
   addEventListener('message', e => {
     const a = APPS.find(x => x.origin === e.origin);
+    if (a && e.data && e.data.type === 'hub:progress' && Number.isInteger(e.data.solved) && Number.isInteger(e.data.total)) {
+      store.set('prep:lab', { solved: e.data.solved, total: e.data.total, lang: String(e.data.lang || '').slice(0, 20) });
+      return;
+    }
     if (!a || !e.data || e.data.type !== 'hub:path' || typeof e.data.path !== 'string') return;
     if (!/^\/[\w\/-]*$/.test(e.data.path)) return;
     reported[a.key] = e.data.path;
@@ -583,6 +753,389 @@
     const k = ['home', ...APPS.map(a => a.key)][+e.key];
     if (k) { e.preventDefault(); show(k); }
   });
+
+  // ---------- storage (every access guarded: private windows and blocked storage just lose the feature)
+  const store = {
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+  // prep/data.json: quiz banks and topic lists from the steppers, AlgoScope problems, lab projects (tools/build_prep_data.py)
+  let DATA = null;
+  const dataReady = fetch('data.json').then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => (DATA = d)).catch(() => null);
+
+  /** Open a tool at a specific place, even when its tab is already loaded somewhere else. */
+  function openAt(key, sub = '', hash = '') {
+    const a = byKey[key], f = frames[key], url = (a.origin || '') + a.path + sub + hash;
+    if (!f) return show(key, sub, hash);
+    try {
+      if (a.origin) f.src = url;
+      else {
+        const w = f.contentWindow;
+        if (w.location.pathname === a.path + sub && key !== 'algo') { w.location.hash = hash; w.location.reload(); } // steppers read the hash on load
+        else w.location.replace(url);
+      }
+    } catch (e) { f.src = url; }
+    show(key);
+  }
+
+  /** What a deep link points at, in words: "6.5 MVCC: row versions…", "Two Sum", "Rate Limiter". */
+  function titleFor(key, sub, hash) {
+    if (!DATA) return '';
+    if (key === 'algo') { const p = DATA.algo.find(x => '#' + x[0] === hash); return p ? p[1] : ''; }
+    if (key === 'lab') { const p = DATA.lab.find(x => 'p/' + x[0] === sub.replace(/\/$/, '')); return p ? p[1] : ''; }
+    const t = (DATA.steppers[key] || []).find(x => '#' + x.id === hash);
+    return t ? `${t.no} ${t.title}` : '';
+  }
+  function rememberLast(key, s) {
+    if (!s.sub && !s.hash) return;
+    const prev = store.get('prep:last', {});
+    if (prev.key !== key || prev.sub !== s.sub || prev.hash !== s.hash) store.set('prep:last', { key, sub: s.sub, hash: s.hash });
+  }
+
+  // ---------- question of the day
+  const flame = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.5-1.6 5.3-3 7.3C7.6 11.2 7 12.7 7 14.5a5 5 0 0 0 10 0c0-1.8-.8-3.4-1.8-4.6-.3 1.4-1 2.3-2 2.6.6-2.9.2-6.6-1.2-10.5Z"/></svg>';
+  const dayStr = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const dayNum = s => Math.round(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5);
+  const rng = seed => () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  let POOL = null;
+  function pool() {
+    if (POOL || !DATA) return POOL;
+    POOL = [];
+    for (const key of ['java', 'db']) for (const t of DATA.steppers[key])
+      t.quiz.forEach((q, i) => { if (q[4] !== 'H') POOL.push({ key, t, q, i }); });
+    return POOL;
+  }
+  function streakNow() {
+    const s = store.get('prep:daily', {});
+    return s.last && dayNum(dayStr()) - dayNum(s.last) <= 1 ? s.streak || 0 : 0;
+  }
+  let dailyMode = 'today';
+  function renderDaily(item, practice) {
+    const el = $('daily');
+    if (!item) { el.innerHTML = `<p class="dsrc">The question of the day couldn't load. Try again later.</p>`; return; }
+    const today = dayStr(), saved = store.get('prep:daily', {});
+    const answered = !practice && saved.today && saved.today.date === today ? saved.today : null;
+    const [q, opts, ans, why] = item.q, app = byKey[item.key];
+    const order = opts.map((_, i) => i);
+    const r = rng(practice ? (Math.random() * 1e9) | 0 : dayNum(today));
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    const st = streakNow();
+    el.innerHTML = `<div class="dhead"><span class="dlabel${practice ? ' practice' : ''}">${practice ? 'Practice question' : 'Question of the day'}</span>
+        <span class="streak${st ? ' on' : ''}" title="Days in a row you've answered the question of the day">${flame}${st} day${st === 1 ? '' : 's'}</span></div>
+      <div class="dsrc">${esc(app.full)} · ${esc(item.t.no)} ${esc(item.t.title)}</div>
+      <div class="dq">${q}</div>
+      <div class="dopts">${order.map((oi, k) => `<button type="button" class="dopt" data-i="${oi}"><span class="l">${'ABCD'[k]}</span><span>${opts[oi]}</span></button>`).join('')}</div>
+      <div class="dres" hidden></div>`;
+    const finish = (pick, fresh) => {
+      el.querySelectorAll('.dopt').forEach(b => {
+        const i = +b.dataset.i; b.disabled = true;
+        b.classList.add(i === ans ? 'right' : i === pick ? 'wrong' : 'dim');
+      });
+      const ok = pick === ans, res = el.querySelector('.dres');
+      res.hidden = false;
+      res.innerHTML = `<span class="verdict ${ok ? 'ok' : 'bad'}">${ok ? 'Correct.' : 'Not quite.'}</span> <span class="dwhy">${why}</span>
+        <div class="dacts"><button type="button" class="main learn">Learn this topic →</button><button type="button" class="more">Practice another</button>${practice ? '<button type="button" class="back">Back to today\'s</button>' : ''}</div>`;
+      res.querySelector('.learn').onclick = () => openAt(item.key, '', '#' + item.t.id);
+      res.querySelector('.more').onclick = () => { const P = pool(); dailyMode = 'practice'; renderDaily(P[Math.floor(Math.random() * P.length)], true); };
+      if (practice) res.querySelector('.back').onclick = () => { dailyMode = 'today'; renderDaily(todays(), false); };
+      if (fresh && !practice) {
+        const s = store.get('prep:daily', {});
+        const gap = s.last ? dayNum(today) - dayNum(s.last) : 99;
+        if (gap !== 0) { s.streak = gap === 1 ? (s.streak || 0) + 1 : 1; s.last = today; }
+        s.best = Math.max(s.best || 0, s.streak);
+        s.today = { date: today, pick, ok };
+        store.set('prep:daily', s);
+        const n = s.streak, badge = el.querySelector('.streak');
+        badge.classList.add('on'); badge.innerHTML = `${flame}${n} day${n === 1 ? '' : 's'}`;
+      }
+    };
+    el.querySelectorAll('.dopt').forEach(b => b.onclick = () => finish(+b.dataset.i, true));
+    if (answered) finish(answered.pick, false);
+  }
+  function todays() { const P = pool(); return P && P.length ? P[(dayNum(dayStr()) * 7919) % P.length] : null; }
+  dataReady.then(() => renderDaily(todays(), false));
+
+  // ---------- progress across the tools (the three same-origin tools share this site's storage)
+  function ring(frac) {
+    const C = 2 * Math.PI * 21, f = Math.max(0, Math.min(1, frac || 0));
+    return `<svg class="ring" viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="21"/><circle class="val" cx="26" cy="26" r="21" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}"/></svg>`;
+  }
+  function quizStats(key, prefix) {
+    const best = store.get(prefix + '-quiz-best-v1', {}), topics = DATA ? DATA.steppers[key] : [];
+    let quizzed = 0, aced = 0;
+    for (const t of topics) {
+      const b = best[t.id];
+      if (b === undefined) continue;
+      quizzed++;
+      if (b >= Math.min(3, t.quiz.length)) aced++;
+    }
+    return { quizzed, aced, total: topics.length };
+  }
+  function renderProgress() {
+    const el = $('progress');
+    if (!DATA) { dataReady.then(d => d && renderProgress()); return; }
+    const viewed = store.get('algoscope:viewed', []).length, nAlgo = DATA.algo.length;
+    const jv = quizStats('java', 'jv'), db = quizStats('db', 'dbv');
+    const ex = Object.values(store.get('dbv-ex-done-v1', {})).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
+    const lab = store.get('prep:lab', null), last = store.get('prep:last', null);
+    const tiles = [
+      { key: 'algo', f: viewed / nAlgo, n: viewed, of: nAlgo, lbl: 'problems traced', sub: 'in AlgoScope' },
+      { key: 'java', f: jv.quizzed / jv.total, n: jv.quizzed, of: jv.total, lbl: 'Java topics quizzed', sub: `${jv.aced} aced` },
+      { key: 'db', f: db.quizzed / db.total, n: db.quizzed, of: db.total, lbl: 'DB topics quizzed', sub: `${db.aced} aced · ${ex} exercises solved` },
+      lab ? { key: 'lab', f: lab.solved / (lab.total || 1), n: lab.solved, of: lab.total, lbl: 'lab projects solved', sub: lab.lang ? `in ${lab.lang}` : '' }
+          : { key: 'lab', f: 0, n: '–', of: DATA.lab.length, lbl: 'lab projects solved', sub: 'Open the lab once to sync' },
+    ];
+    let cont = '';
+    if (last && byKey[last.key]) {
+      const what = titleFor(last.key, last.sub || '', last.hash || '');
+      cont = `<button type="button" class="cont" id="contBtn">Continue: ${esc(byKey[last.key].name)}${what ? ' · ' + esc(what) : ''} →</button>`;
+    }
+    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all four tools, saved in this browser</span>${cont}</div>
+      <div class="tiles">${tiles.map(t => `<button type="button" class="tile" data-key="${t.key}">${ring(t.f)}
+        <span><span class="n">${t.n}<small> / ${t.of}</small></span><br><span class="lbl">${t.lbl}</span><br><span class="sub">${esc(t.sub)}</span></span></button>`).join('')}</div>`;
+    el.querySelectorAll('.tile').forEach(b => b.onclick = () => show(b.dataset.key));
+    if (cont) $('contBtn').onclick = () => openAt(last.key, last.sub || '', last.hash || '');
+  }
+
+  // ---------- drag the floating concepts onto the tool they belong to
+  // [label, tool, deep link (hash for AlgoScope and the steppers, path for the lab), one-line fact]
+  const CONCEPTS = [
+    ['Trapping rain water', 'algo', '#trapping-rain-water', 'Two pointers: water above a bar is min(max left, max right) minus its height.'],
+    ['Monotonic stack', 'algo', '#daily-temperatures', 'Keep a stack of unresolved days; each warmer day pops the ones it answers.'],
+    ["Dijkstra's shortest path", 'algo', '#network-delay-time', 'Always settle the closest unvisited node next, using a min-heap.'],
+    ['Topological sort', 'algo', '#course-schedule-ii', "Kahn's algorithm: repeatedly take nodes with no incoming edges."],
+    ['Union-Find', 'algo', '#redundant-connection', 'The first edge joining two nodes already in one set closes a cycle.'],
+    ['Backtracking: N-Queens', 'algo', '#n-queens', 'Place a queen per row; undo the move when no column is safe.'],
+    ['Trie', 'algo', '#implement-trie-prefix-tree', 'One node per character, so prefix lookups cost O(length).'],
+    ["Kadane's algorithm", 'algo', '#maximum-subarray', 'Extend the running sum, or start over when it goes negative.'],
+    ['Edit distance', 'algo', '#edit-distance', 'dp[i][j] = cheapest of insert, delete or replace from smaller prefixes.'],
+    ['Sliding window maximum', 'algo', '#sliding-window-maximum', 'A deque of indexes with decreasing values gives O(n).'],
+    ['volatile', 'java', '#t4-6', 'Guarantees visibility and ordering, not atomicity: count++ still races.'],
+    ['Garbage collection', 'java', '#t1-4', 'Objects die young: generational GCs collect the young space often and cheaply.'],
+    ['Virtual threads', 'java', '#t4-17', 'Java 21: millions of cheap threads that unmount from carriers while blocked.'],
+    ['CompletableFuture', 'java', '#t4-14', 'Chain async steps with thenApply / thenCompose instead of blocking on get().'],
+    ['Integer cache', 'java', '#t1-7', 'Integer.valueOf caches -128..127, so == works there and then silently fails.'],
+    ['Type erasure', 'java', '#t2-10', 'List<String> and List<Integer> are the same class at runtime.'],
+    ['Fail-fast iterator', 'java', '#t2-6', 'modCount changes mid-loop throw ConcurrentModificationException.'],
+    ['@Transactional', 'java', '#t5-4', 'Works through a proxy, so calling it from the same class skips the transaction.'],
+    ['Decorator pattern', 'java', '#t3-7g', 'Wrap an object to add behaviour without subclassing it.'],
+    ['equals / hashCode', 'java', '#t2-3', 'Override one without the other and HashMap lookups break.'],
+    ['MVCC', 'db', '#t6-5', 'Readers see a snapshot of row versions, so they never block writers.'],
+    ['B+ tree index', 'db', '#t4-2', 'Fanout in the hundreds keeps 100M rows within 3–4 page reads.'],
+    ['Window functions', 'db', '#t2-2', 'OVER (PARTITION BY …) ranks rows without collapsing them like GROUP BY.'],
+    ['Two-phase commit', 'db', '#t8-6', 'Prepare everywhere, then commit; a stuck coordinator blocks everyone.'],
+    ['Write-ahead log', 'db', '#t7-1', 'Log the change before the page: crash recovery replays the log.'],
+    ['Consistent hashing', 'db', '#t8-4', 'Adding a node moves only about 1/n of the keys.'],
+    ['Third normal form', 'db', '#t3-4', 'Every non-key column depends on the key, the whole key and nothing but the key.'],
+    ['Raft', 'db', '#t8-7', 'A leader is elected per term and log entries commit on a majority.'],
+    ['LSM tree', 'db', '#t4-7', 'Buffer writes in memory, flush sorted runs, merge them later.'],
+    ['Write skew', 'db', '#t6-7', 'Two transactions read the same rows and write different ones; only SERIALIZABLE stops it.'],
+    ['Token bucket', 'lab', 'p/rate-limiter', 'Refill tokens over time and spend one per request; bursts up to capacity.'],
+    ['Base62 short codes', 'lab', 'p/url-shortener', 'Encode a counter or hash in [0-9a-zA-Z] for short, unique links.'],
+    ['Retry with backoff', 'lab', 'p/job-queue', 'Wait longer after each failure and add jitter so retries don’t stampede.'],
+    ['Percentage rollout', 'lab', 'p/feature-flag', 'Hash the user id into 100 buckets so each user stays in their cohort.'],
+    ['Threaded replies', 'lab', 'p/comments-replies', 'Store parent ids, then build the tree in one pass.'],
+    ['Reset tokens', 'lab', 'p/password-reset', 'Single-use, short-lived, and only a hash of the token is stored.'],
+    ['TTL + LRU eviction', 'lab', 'p/ttl-lru-cache', 'Expire stale entries, evict the least recently used when full.'],
+    ['Leaderboard ranking', 'lab', 'p/leaderboard', 'Ties, pagination and score updates without re-sorting everything.'],
+    ['Double booking', 'lab', 'p/reservation-service', 'Two requests both see the slot free; lock or use a unique constraint.'],
+    ['File deduplication', 'lab', 'p/file-deduplication', 'Group by size first, then hash only the files that could match.'],
+  ];
+  const linkOf = c => c[1] === 'lab' ? { sub: c[2], hash: '' } : { sub: '', hash: c[2] };
+  const layer = $('floatLayer'), tray = $('tray');
+  const score = Object.assign({ sorted: 0, streak: 0, best: 0 }, store.get('prep:sort', {}));
+  const showScore = () => {
+    $('sortScore').innerHTML = score.sorted ? `sorted <b>${score.sorted}</b> · streak ${score.streak} · best ${score.best}` : '';
+  };
+  showScore();
+  let deck = [], mode = null, armed = null;
+  const draw = () => {
+    if (!deck.length) {
+      const onBoard = new Set([...document.querySelectorAll('.chip')].map(ch => ch.dataset.i));
+      deck = CONCEPTS.map((_, i) => i).filter(i => !onBoard.has(String(i)));
+      for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+    }
+    return deck.pop();
+  };
+  const SLOTS = 6;
+  function freeSlot() {
+    const used = new Set([...layer.querySelectorAll('.chip')].map(ch => ch.dataset.slot));
+    for (let s = 0; s < SLOTS; s++) if (!used.has(String(s))) return s;
+    return -1;
+  }
+  function placeFloating(ch) {
+    // three per side, spread down the gutters with some jitter
+    const s = +ch.dataset.slot, side = s % 2, row = s >> 1;
+    const content = Math.min(1120, innerWidth - 32), gutter = (innerWidth - content) / 2;
+    const w = ch.offsetWidth || 160, h = layer.clientHeight || innerHeight;
+    const maxX = Math.max(8, gutter - w - 18), jx = +ch.dataset.jx, jy = +ch.dataset.jy;
+    const x = side === 0 ? 14 + jx * (maxX - 14) : innerWidth - gutter + 4 + jx * (maxX - 14);
+    const y = h * (0.12 + row * 0.29) + jy * h * 0.12;
+    ch.dataset.x = x; ch.dataset.y = y;
+    ch.style.left = x + 'px'; ch.style.top = y + 'px';
+  }
+  function makeChip() {
+    const i = draw(), c = CONCEPTS[i];
+    const ch = document.createElement('button');
+    ch.type = 'button'; ch.className = 'chip enter'; ch.dataset.i = i;
+    ch.textContent = c[0];
+    ch.setAttribute('aria-label', `Concept: ${c[0]}. Press to pick it up, then choose a tool card.`);
+    ch.style.setProperty('--dur', (5 + Math.random() * 3).toFixed(1) + 's');
+    ch.style.setProperty('--delay', (-Math.random() * 5).toFixed(1) + 's');
+    ch.dataset.jx = Math.random().toFixed(3); ch.dataset.jy = Math.random().toFixed(3);
+    wireChip(ch);
+    return ch;
+  }
+  function addChip() {
+    if (mode === 'float') {
+      const s = freeSlot(); if (s < 0) return;
+      const ch = makeChip(); ch.dataset.slot = s;
+      layer.appendChild(ch); placeFloating(ch);
+    } else {
+      if (tray.children.length >= 4) return;
+      tray.appendChild(makeChip());
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.chip.enter').forEach(c => c.classList.remove('enter'))));
+  }
+  function layout() {
+    const content = Math.min(1120, innerWidth - 32), gutter = (innerWidth - content) / 2;
+    const want = gutter >= 190 ? 'float' : 'tray';
+    $('sortHint').textContent = want === 'float'
+      ? 'Drag the floating concepts onto the tool they belong to.'
+      : 'Drag a concept onto the tool it belongs to, or tap it and then tap a card.';
+    if (want !== mode) {
+      mode = want;
+      const keep = [...document.querySelectorAll('.chip')].map(ch => ch.dataset.i);
+      layer.innerHTML = ''; tray.innerHTML = '';
+      tray.classList.toggle('on', mode === 'tray');
+      deck = deck.filter(i => !keep.includes(String(i)));
+      const n = mode === 'float' ? SLOTS : 4;
+      for (let k = 0; k < n; k++) addChip();
+    } else if (mode === 'float') layer.querySelectorAll('.chip').forEach(placeFloating);
+  }
+
+  // pointer drag (mouse, pen and touch); a press without movement picks the chip up for tap-to-place
+  function wireChip(ch) {
+    let drag = null;
+    ch.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const r = ch.getBoundingClientRect();
+      drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false, over: null };
+      ch.setPointerCapture(e.pointerId);
+    });
+    ch.addEventListener('pointermove', e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (!drag.moved) {
+        if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+        drag.moved = true; disarm();
+        const r = ch.getBoundingClientRect();
+        ch.style.width = r.width + 'px';
+        ch.classList.add('dragging');
+      }
+      ch.style.left = e.clientX - drag.dx + 'px';
+      ch.style.top = e.clientY - drag.dy + 'px';
+      const card = document.elementFromPoint(e.clientX, e.clientY)?.closest('.card[data-key]') || null;
+      if (card !== drag.over) { drag.over?.classList.remove('drop-over'); card?.classList.add('drop-over'); drag.over = card; }
+    });
+    const end = e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const d = drag; drag = null;
+      if (!d.moved) return;
+      ch._dragged = true; setTimeout(() => { ch._dragged = false; }, 0);
+      d.over?.classList.remove('drop-over');
+      ch.classList.remove('dragging'); ch.style.width = '';
+      if (d.over && e.type === 'pointerup') judge(ch, d.over.dataset.key, e.clientX, e.clientY);
+      else goHome(ch);
+    };
+    ch.addEventListener('pointerup', end);
+    ch.addEventListener('pointercancel', end);
+    ch.addEventListener('click', e => {
+      e.preventDefault();
+      if (ch._dragged) return;
+      armed === ch ? disarm() : arm(ch);
+    });
+  }
+  function goHome(ch) {
+    if (ch.parentElement === layer) { ch.style.left = ch.dataset.x + 'px'; ch.style.top = ch.dataset.y + 'px'; }
+    else { ch.style.left = ''; ch.style.top = ''; }
+  }
+  function arm(ch) {
+    disarm(); armed = ch; ch.classList.add('armed');
+    document.body.classList.add('arming');
+    document.querySelectorAll('.dropzone').forEach(z => { z.textContent = `Drop “${ch.textContent}” here`; });
+  }
+  function disarm() {
+    armed?.classList.remove('armed'); armed = null;
+    document.body.classList.remove('arming');
+  }
+  document.querySelectorAll('.card[data-key] .dropzone').forEach(z => z.addEventListener('click', e => {
+    if (!armed) return;
+    const ch = armed, r = z.getBoundingClientRect();
+    disarm();
+    judge(ch, z.closest('.card').dataset.key, r.left + r.width / 2, r.top + r.height / 3);
+  }));
+  addEventListener('keydown', e => { if (e.key === 'Escape') disarm(); });
+
+  const cardOf = key => document.querySelector(`.card[data-key="${key}"]`);
+  function flash(card, cls, ms) { card.classList.remove(cls); void card.offsetWidth; card.classList.add(cls); setTimeout(() => card.classList.remove(cls), ms); }
+  function sparks(x, y) {
+    if (reduceMotion) return;
+    const colors = ['var(--ok)', 'var(--accent)', 'var(--bright)'];
+    for (let k = 0; k < 14; k++) {
+      const s = document.createElement('span'), a = (k / 14) * Math.PI * 2, d = 40 + Math.random() * 50;
+      s.className = 'spark';
+      s.style.left = x + 'px'; s.style.top = y + 'px';
+      s.style.setProperty('--dx', Math.cos(a) * d + 'px'); s.style.setProperty('--dy', Math.sin(a) * d + 'px');
+      s.style.setProperty('--c', colors[k % 3]);
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 800);
+    }
+  }
+  function reveal(card, c, kind) {
+    const demo = card.querySelector('.demo');
+    demo.querySelector('.reveal')?.remove();
+    const el = document.createElement('div');
+    const tool = byKey[c[1]];
+    el.className = 'reveal ' + kind;
+    el.innerHTML = `<div class="t">${kind === 'ok' ? `<span class="ok">✓</span> ${esc(c[0])} belongs here` : `${esc(c[0])} lives here, in ${esc(tool.full || tool.name)}`}</div>
+      <p>${esc(c[3])}</p><button type="button" class="open">Open “${esc(c[0])}” →</button><button type="button" class="x" aria-label="Close">×</button>`;
+    el.addEventListener('click', e => e.stopPropagation());
+    el.querySelector('.open').onclick = () => { const l = linkOf(c); openAt(c[1], l.sub, l.hash); };
+    el.querySelector('.x').onclick = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); };
+    demo.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+    clearTimeout(card._rt);
+    card._rt = setTimeout(() => { if (!el.matches(':hover')) { el.classList.remove('show'); setTimeout(() => el.remove(), 400); } }, 9000);
+  }
+  function judge(ch, key, x, y) {
+    const c = CONCEPTS[+ch.dataset.i], card = cardOf(key);
+    if (c[1] === key) {
+      score.sorted++; score.streak++; score.best = Math.max(score.best, score.streak);
+      flash(card, 'got-it', 1200);
+      sparks(x, y);
+      reveal(card, c, 'ok');
+      ch.classList.add('gone');
+      setTimeout(() => { ch.remove(); addChip(); }, 320);
+    } else {
+      score.streak = 0;
+      flash(card, 'nope', 600);
+      const b = document.createElement('span');
+      b.className = 'badge'; b.textContent = `✗ It's ${byKey[c[1]].name}`;
+      card.appendChild(b); setTimeout(() => b.remove(), 1500);
+      goHome(ch);
+      const right = cardOf(c[1]), rr = right.getBoundingClientRect();
+      flash(right, 'hint', 3200);
+      reveal(right, c, 'hint');
+      if (rr.top < 0 || rr.bottom > innerHeight) setTimeout(() => right.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' }), 450);
+    }
+    store.set('prep:sort', score);
+    showScore();
+  }
+  let rz;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(layout, 150); });
+  layout();
 
   const start = readUrl();
   show(start.key, start.sub, start.hash);
