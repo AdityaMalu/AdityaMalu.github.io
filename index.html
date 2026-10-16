@@ -138,6 +138,9 @@
   .card p.note { font-size: 14px; color: var(--soft); }
   .card p.note a { color: var(--text); border-bottom: 1px solid var(--accent); }
   .card p.note a:hover { color: var(--accent); }
+  .more { margin: 20px 0 0; font-family: var(--display); font-weight: 600; font-size: 16px; }
+  .more a { color: var(--bright); border-bottom: 1px solid var(--accent); }
+  .more a:hover { color: var(--accent); }
   .card ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 16px; }
   .card li { padding-left: 18px; position: relative; }
   .card li::before { content: "▹"; position: absolute; left: 0; color: var(--accent); }
@@ -353,7 +356,19 @@
             <div class="chips"><span>Java</span><span>Spring</span><span>JavaScript</span></div>
           </div>
         </li>
+        <li class="card">
+          <div class="thumb" aria-hidden="true">
+            <svg viewBox="0 0 80 50" fill="none" stroke="#f2b880" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="40" cy="12" rx="20" ry="5"/><path d="M20 12v24c0 2.8 9 5 20 5s20-2.2 20-5V12"/><path d="M20 24c0 2.8 9 5 20 5s20-2.2 20-5"/></svg>
+          </div>
+          <div>
+            <h3><a href="https://adityamalu.github.io/DBVisualizer/" target="_blank" rel="noopener"><span class="hl">DB Concepts Stepper</span><span class="arrow">↗</span></a></h3>
+            <p>71 database topics, from SQL and window functions to B+ trees, MVCC, replication and sharding. Each one has a visual walkthrough, examples you can run against SQLite in the browser, auto-checked exercises and a quiz.</p>
+            <p class="note">Built with Claude Code as a pair programmer. <a href="https://github.com/AdityaMalu/DBVisualizer" target="_blank" rel="noopener">Source</a></p>
+            <div class="chips"><span>SQL</span><span>SQLite (WASM)</span><span>JavaScript</span></div>
+          </div>
+        </li>
       </ol>
+      <p class="more"><a href="prep/">Open all three prep tools in one place →</a></p>
     </section>
 
     <section id="contact">

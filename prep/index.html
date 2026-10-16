@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Prep · Aditya Malu</title>
+<meta name="description" content="Three visual interview-prep tools in one place: AlgoScope (DSA traces), Java Concepts Stepper and DB Concepts Stepper.">
+<meta property="og:title" content="Interview Prep · Aditya Malu">
+<meta property="og:description" content="DSA traces, Java internals and database concepts, step by step.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311202b'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' font-weight='700' text-anchor='middle' fill='%23f2b880'%3Eam%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #11202b;
+    --bg-raise: #172a37;
+    --text: #c7d3dc;
+    --bright: #eef3f6;
+    --soft: #8497a6;
+    --line: #253b4a;
+    --accent: #f2b880;
+    --accent-dim: rgba(242, 184, 128, 0.12);
+    --display: "Sora", "Segoe UI", sans-serif;
+    --body: "Karla", "Segoe UI", sans-serif;
+    --bar: 52px;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f3ee;
+    --bg-raise: #ffffff;
+    --text: #3d4a54;
+    --bright: #13232e;
+    --soft: #6f7d88;
+    --line: #e2dcd2;
+    --accent: #b85c1e;
+    --accent-dim: rgba(184, 92, 30, 0.10);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--body); overflow: hidden; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  /* top bar */
+  .bar {
+    height: var(--bar); display: flex; align-items: center; gap: 8px;
+    padding: 0 12px; border-bottom: 1px solid var(--line); background: var(--bg-raise);
+  }
+  .brand { font-family: var(--display); font-weight: 700; color: var(--bright); font-size: 15px; white-space: nowrap; padding: 6px 8px; }
+  .brand span { color: var(--accent); }
+  .tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 7px 12px; border-radius: 8px; white-space: nowrap; font-weight: 500; font-size: 15px; color: var(--soft);
+    transition: background .15s, color .15s;
+  }
+  .tab:hover { color: var(--bright); background: var(--accent-dim); }
+  .tab[aria-selected="true"] { color: var(--accent); background: var(--accent-dim); }
+  .tools { display: flex; gap: 2px; }
+  .icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: var(--soft); }
+  .icon:hover { color: var(--accent); background: var(--accent-dim); }
+  .icon svg { width: 18px; height: 18px; }
+  .icon[hidden] { display: none; }
+  .tab .sm { display: none; }
+
+  /* panes */
+  .stage { position: relative; height: calc(100% - var(--bar)); }
+  .pane { position: absolute; inset: 0; }
+  .pane[hidden] { display: none; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
+
+  /* home */
+  .home { overflow-y: auto; padding: 48px 16px 64px; }
+  .home-inner { max-width: 1040px; margin: 0 auto; }
+  .home h1 { font-family: var(--display); color: var(--bright); font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
+  .lede { color: var(--soft); max-width: 40em; margin: 12px 0 32px; font-size: 17px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .card {
+    display: flex; flex-direction: column; gap: 10px; text-align: left;
+    padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg-raise);
+    transition: border-color .15s, transform .15s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card svg { width: 64px; height: 40px; }
+  .card h2 { font-family: var(--display); color: var(--bright); font-size: 19px; margin: 0; }
+  .card p { margin: 0; color: var(--text); }
+  .card .stat { color: var(--soft); font-size: 14px; }
+  .card .row { margin-top: auto; padding-top: 6px; display: flex; gap: 16px; font-size: 14px; }
+  .card .row .go { color: var(--accent); font-weight: 700; }
+  .card .row a { color: var(--soft); }
+  .card .row a:hover { color: var(--accent); }
+  .foot { margin-top: 32px; color: var(--soft); font-size: 14px; }
+  .foot a { color: var(--accent); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: var(--bright); color: var(--bg); padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 640px) {
+    .brand .long { display: none; }
+    .tab { padding: 7px 10px; font-size: 14px; }
+    .tab .lg { display: none; }
+    .tab .sm { display: inline; }
+    .bar { padding: 0 6px; gap: 4px; }
+    .home { padding-top: 32px; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="../" title="Back to adityamalu.github.io">am<span>/</span><span class="long" style="color:inherit">prep</span></a>
+  <nav class="tabs" role="tablist" aria-label="Tools" id="tabs"></nav>
+  <div class="tools">
+    <button class="icon" id="copyBtn" type="button" title="Copy link to this view" aria-label="Copy link to this view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+    </button>
+    <a class="icon" id="openBtn" target="_blank" rel="noopener" title="Open on its own" aria-label="Open this tool on its own page" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+    </a>
+    <a class="icon" id="srcBtn" target="_blank" rel="noopener" title="Source on GitHub" aria-label="Source on GitHub" hidden>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main class="stage" id="stage">
+  <section class="pane home" id="pane-home" role="tabpanel">
+    <div class="home-inner">
+      <h1>Interview prep, step by step</h1>
+      <p class="lede">Three visual tools I built while preparing for backend interviews. Each one stays a separate app with its own repo, and they all open here. Every tab has its own link, so you can share a specific problem or topic.</p>
+      <div class="grid" id="cards"></div>
+      <p class="foot">Made by <a href="../">Aditya Malu</a>.</p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const APPS = [
+    { key: 'algo', name: 'AlgoScope', short: 'Algo', path: '/algoscope/', repo: 'AdityaMalu/algoscope',
+      blurb: 'Animated traces of 159 DSA interview problems, recorded from real Java runs, with Python and C++ versions.',
+      stat: 'Arrays · graphs · DP · trees · and more',
+      icon: '<rect x="4" y="16" width="12" height="12" rx="2"/><rect x="18" y="16" width="12" height="12" rx="2"/><rect x="32" y="16" width="12" height="12" rx="2"/><rect x="46" y="16" width="12" height="12" rx="2"/><path d="M24 4v7M21 8l3 3 3-3M52 38v-6M49 35l3-3 3 3"/>' },
+    { key: 'java', name: 'Java Stepper', short: 'Java', full: 'Java Concepts Stepper', path: '/java-visualizer/', repo: 'AdityaMalu/java-visualizer',
+      blurb: 'Debugger-style walkthroughs of the JVM, collections, OOP and patterns, concurrency, Spring and JPA.',
+      stat: 'Quiz after every topic',
+      icon: '<path d="M8 6h28M14 14h24M14 22h18M8 30h14"/><path d="M2 20l4 2-4 2z"/><rect x="44" y="6" width="18" height="28" rx="3"/><path d="M50 14l7 6-7 6z"/>' },
+    { key: 'db', name: 'DB Stepper', short: 'DB', full: 'DB Concepts Stepper', path: '/DBVisualizer/', repo: 'AdityaMalu/DBVisualizer',
+      blurb: '71 database topics from SQL to distributed systems, with runnable SQLite examples, auto-checked exercises and quizzes.',
+      stat: 'Indexes · transactions · MVCC · sharding',
+      icon: '<ellipse cx="32" cy="8" rx="20" ry="5"/><path d="M12 8v24c0 2.8 9 5 20 5s20-2.2 20-5V8"/><path d="M12 20c0 2.8 9 5 20 5s20-2.2 20-5"/>' },
+  ];
+  const byKey = Object.fromEntries(APPS.map(a => [a.key, a]));
+  const $ = id => document.getElementById(id);
+  const tabsEl = $('tabs'), stage = $('stage'), cards = $('cards');
+  const frames = {};
+  let current = 'home';
+
+  // theme: follow the portfolio's saved choice, else the OS
+  try {
+    const t = localStorage.getItem('theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+
+  const svg = inner => `<svg viewBox="0 0 64 40" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+
+  // tabs + home cards
+  const mkTab = (key, label, short) => {
+    const b = document.createElement('button');
+    b.className = 'tab'; b.type = 'button'; b.role = 'tab'; b.id = 'tab-' + key;
+    b.innerHTML = `<span class="lg">${label}</span><span class="sm">${short || label}</span>`; b.onclick = () => show(key);
+    tabsEl.appendChild(b);
+  };
+  mkTab('home', 'Home');
+  for (const a of APPS) {
+    mkTab(a.key, a.name, a.short);
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `${svg(a.icon)}<h2>${a.full || a.name}</h2><p>${a.blurb}</p><p class="stat">${a.stat}</p>
+      <div class="row"><button type="button" class="go">Open here →</button>
+      <a href="${a.path}" target="_blank" rel="noopener">Own page ↗</a>
+      <a href="https://github.com/${a.repo}" target="_blank" rel="noopener">Source</a></div>`;
+    c.querySelector('.go').onclick = () => show(a.key);
+    cards.appendChild(c);
+  }
+
+  // URL format: /prep/?a=<key>[&p=<sub/path/>]#<the tool's own hash>
+  function readUrl() {
+    const q = new URLSearchParams(location.search);
+    const key = byKey[q.get('a')] ? q.get('a') : 'home';
+    const sub = (q.get('p') || '').replace(/^\/+/, '').replace(/\.\./g, '');
+    return { key, sub, hash: location.hash };
+  }
+  function writeUrl(key, sub, hash) {
+    let url = location.pathname;
+    if (key !== 'home') {
+      const q = new URLSearchParams({ a: key });
+      if (sub) q.set('p', sub);
+      url += '?' + q.toString() + (hash || '');
+    }
+    if (url !== location.pathname + location.search + location.hash) history.replaceState(null, '', url);
+  }
+
+  // where is the tool's iframe right now (same origin on Pages)
+  function innerState(key) {
+    const f = frames[key];
+    if (!f) return null;
+    try {
+      const l = f.contentWindow.location;
+      const base = byKey[key].path;
+      if (!l.pathname.startsWith(base)) return null;
+      let sub = l.pathname.slice(base.length);
+      if (sub === 'index.html') sub = '';
+      return { sub, hash: l.hash };
+    } catch (e) { return null; } // cross-origin (e.g. local preview)
+  }
+  function sync() {
+    if (current === 'home') return writeUrl('home');
+    const s = innerState(current);
+    if (s) writeUrl(current, s.sub, s.hash);
+    else writeUrl(current, readUrl().key === current ? readUrl().sub : '', readUrl().key === current ? location.hash : '');
+    updateTools();
+  }
+
+  function frameFor(key, sub, hash) {
+    if (frames[key]) return frames[key];
+    const a = byKey[key];
+    const pane = document.createElement('section');
+    pane.className = 'pane'; pane.id = 'pane-' + key; pane.role = 'tabpanel'; pane.hidden = true;
+    const f = document.createElement('iframe');
+    f.title = a.full || a.name;
+    f.allow = 'clipboard-write; fullscreen';
+    f.src = a.path + (sub || '') + (hash || '');
+    f.addEventListener('load', () => {
+      try {
+        f.contentWindow.addEventListener('hashchange', sync);
+        f.contentWindow.addEventListener('popstate', sync);
+      } catch (e) {}
+      if (current === key) sync();
+    });
+    pane.appendChild(f);
+    stage.appendChild(pane);
+    return (frames[key] = f);
+  }
+
+  function show(key, sub, hash) {
+    current = key;
+    if (key !== 'home') frameFor(key, sub, hash);
+    for (const p of stage.children) p.hidden = p.id !== 'pane-' + key;
+    for (const t of tabsEl.children) t.setAttribute('aria-selected', String(t.id === 'tab-' + key));
+    $('tab-' + key).scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    document.title = key === 'home' ? 'Interview Prep · Aditya Malu' : (byKey[key].full || byKey[key].name) + ' · Interview Prep';
+    sync();
+    if (key !== 'home') try { frames[key].contentWindow.focus(); } catch (e) {}
+  }
+
+  function updateTools() {
+    const a = byKey[current];
+    $('openBtn').hidden = $('srcBtn').hidden = !a;
+    if (!a) return;
+    const s = innerState(current);
+    $('openBtn').href = a.path + (s ? s.sub + s.hash : '');
+    $('srcBtn').href = 'https://github.com/' + a.repo;
+  }
+
+  // the tools update their hash with replaceState, which fires no event, so also poll the visible one
+  setInterval(() => { if (current !== 'home' && !document.hidden) sync(); }, 700);
+
+  const toast = msg => { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1600); };
+  $('copyBtn').onclick = async () => {
+    sync();
+    try { await navigator.clipboard.writeText(location.href); toast('Link copied'); }
+    catch (e) { prompt('Copy this link:', location.href); }
+  };
+
+  // keyboard: Alt+0..3 switches tabs
+  addEventListener('keydown', e => {
+    if (!e.altKey || e.ctrlKey || e.metaKey) return;
+    const k = ['home', ...APPS.map(a => a.key)][+e.key];
+    if (k) { e.preventDefault(); show(k); }
+  });
+
+  const start = readUrl();
+  show(start.key, start.sub, start.hash);
+})();
+</script>
+</body>
+</html>
