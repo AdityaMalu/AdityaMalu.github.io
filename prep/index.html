@@ -69,6 +69,30 @@
   .icon:hover { color: var(--accent); background: var(--accent-dim); }
   .icon svg { width: 18px; height: 18px; }
   .icon[hidden] { display: none; }
+  .tools { position: relative; align-items: center; }
+  .acct {
+    display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px 0 9px; margin-right: 4px;
+    border: 1px solid var(--line); border-radius: 99px; font-size: 14px; font-weight: 500; color: var(--bright); white-space: nowrap;
+  }
+  .acct:hover { border-color: var(--accent); }
+  .acct[hidden] { display: none; }
+  .acct svg { width: 16px; height: 16px; }
+  .acct.in { padding: 0; width: 32px; justify-content: center; overflow: hidden; border-color: var(--accent); }
+  .acct img { width: 100%; height: 100%; object-fit: cover; }
+  .acct .initial { font: 700 14px var(--display); color: var(--accent); }
+  .acct-menu {
+    position: absolute; right: 0; top: 42px; z-index: 70; width: 260px; padding: 14px; border-radius: 12px;
+    background: var(--bg-raise); border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,.35); font-size: 14px;
+  }
+  .acct-menu[hidden] { display: none; }
+  .acct-menu .who b { display: block; color: var(--bright); }
+  .acct-menu .who span { color: var(--soft); font-size: 13px; word-break: break-all; }
+  .acct-menu p { margin: 10px 0 12px; color: var(--text); font-size: 13px; }
+  .acct-menu button { color: var(--accent); font-weight: 700; }
+  .dsync { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--soft); }
+  .dsync:empty { display: none; }
+  .linkish { color: var(--accent); font-weight: 700; padding: 0; }
+  .linkish:hover { text-decoration: underline; }
   .tab .sm { display: none; }
 
   /* panes */
@@ -351,6 +375,8 @@
     .brand .long { display: none; }
     .tab { padding: 7px 8px; font-size: 14px; }
     #srcBtn { display: none; }
+    .acct .t { display: none; }
+    .acct { padding: 0; width: 32px; justify-content: center; }
     .tab .lg { display: none; }
     .tab .sm { display: inline; }
     .bar { padding: 0 6px; gap: 4px; }
@@ -368,6 +394,12 @@
   <a class="brand" href="../" title="Back to adityamalu.github.io">am<span>/</span><span class="long" style="color:inherit">prep</span></a>
   <nav class="tabs" role="tablist" aria-label="Tools" id="tabs"></nav>
   <div class="tools">
+    <button type="button" class="acct" id="acctBtn" hidden></button>
+    <div class="acct-menu" id="acctMenu" hidden>
+      <div class="who"></div>
+      <p>Your daily streak and sort score sync to this account.</p>
+      <button type="button" id="signOutBtn">Sign out</button>
+    </div>
     <button class="icon" id="copyBtn" type="button" title="Copy link to this view" aria-label="Copy link to this view">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
     </button>
@@ -399,7 +431,7 @@
       <section class="panel progress" id="progress" aria-label="Your progress"></section>
       <div class="tray" id="tray"></div>
       <div class="grid" id="cards"></div>
-      <p class="foot">Made by <a href="../">Aditya Malu</a>. Progress, streaks and scores are saved in this browser only.</p>
+      <p class="foot">Made by <a href="../">Aditya Malu</a>. Progress is saved in this browser. Signing in with Google also saves your daily streak and sort score to your account, and nothing else.</p>
     </div>
     <div class="float-layer" id="floatLayer"></div>
   </section>
@@ -828,7 +860,8 @@
       <div class="dsrc">${esc(app.full)} · ${esc(item.t.no)} ${esc(item.t.title)}</div>
       <div class="dq">${q}</div>
       <div class="dopts">${order.map((oi, k) => `<button type="button" class="dopt" data-i="${oi}"><span class="l">${'ABCD'[k]}</span><span>${opts[oi]}</span></button>`).join('')}</div>
-      <div class="dres" hidden></div>`;
+      <div class="dres" hidden></div>
+      <p class="dsync" id="dsync">${syncNote()}</p>`;
     const finish = (pick, fresh) => {
       el.querySelectorAll('.dopt').forEach(b => {
         const i = +b.dataset.i; b.disabled = true;
@@ -847,6 +880,7 @@
         s.best = Math.max(s.best || 0, s.streak);
         s.today = { date: today, pick, ok };
         store.set('prep:daily', s);
+        pushCloud();
         const n = s.streak, badge = el.querySelector('.streak');
         badge.classList.toggle('on', n > 0); badge.innerHTML = `${flame}${n} day${n === 1 ? '' : 's'}`;
       }
@@ -1192,10 +1226,129 @@
     }
     store.set('prep:sort', score);
     showScore();
+    pushCloud();
   }
   let rz;
   addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => current === 'home' && layout(), 150); });
   layout();
+
+  // ---------- optional Google sign-in (Firebase): keeps the daily streak and the sort score on every browser.
+  // Guests keep them in this browser only. Firestore rules (firestore.rules) let each user read and write only users/<their uid>.
+  const FIREBASE = {
+    apiKey: 'AIzaSyD2UF1y0pqaJhDmexzBdixS3YFIgElD_fw',
+    authDomain: 'interviewstepper.firebaseapp.com',
+    projectId: 'interviewstepper',
+    appId: '1:698342622624:web:ff4100280a5803619590c5',
+  };
+  const FB = 'https://www.gstatic.com/firebasejs/13.0.0/';
+  let cloud = null, user = null, pushT = null;
+  const gIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.3 12 2.3 6.7 2.3 2.4 6.6 2.4 12s4.3 9.7 9.6 9.7c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12Z"/></svg>';
+
+  // the newer day wins; on the same day the longer streak; "best" is the highest anyone saw
+  function mergeDaily(a, b) {
+    a = a || {}; b = b || {};
+    const pick = !a.last ? b : !b.last ? a : a.last > b.last ? a : b.last > a.last ? b : (a.streak || 0) >= (b.streak || 0) ? a : b;
+    return { ...pick, best: Math.max(a.best || 0, b.best || 0, pick.streak || 0) };
+  }
+  function mergeSort(a, b) {
+    a = a || {}; b = b || {};
+    const pick = (a.sorted || 0) >= (b.sorted || 0) ? a : b;
+    return { sorted: pick.sorted || 0, streak: pick.streak || 0, best: Math.max(a.best || 0, b.best || 0) };
+  }
+
+  function syncNote() {
+    if (!cloud) return '';
+    if (user) return 'Your streak is saved to your Google account.';
+    return '<button type="button" class="linkish" data-signin>Sign in with Google</button> to keep your streak on every device.';
+  }
+  function renderSync() {
+    const n = $('dsync');
+    if (n) n.innerHTML = syncNote();
+    const b = $('acctBtn'), menu = $('acctMenu');
+    if (!cloud) { b.hidden = true; return; }
+    b.hidden = false;
+    if (user) {
+      b.innerHTML = user.photoURL
+        ? `<img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer">`
+        : `<span class="initial">${esc((user.displayName || user.email || '?')[0].toUpperCase())}</span>`;
+      b.title = 'Signed in as ' + (user.displayName || user.email);
+      b.setAttribute('aria-label', b.title);
+      b.classList.add('in');
+      menu.querySelector('.who').innerHTML = `<b>${esc(user.displayName || '')}</b><span>${esc(user.email || '')}</span>`;
+    } else {
+      b.innerHTML = `${gIcon}<span class="t">Sign in</span>`;
+      b.title = 'Sign in with Google to keep your streak on every device';
+      b.setAttribute('aria-label', b.title);
+      b.classList.remove('in');
+      menu.hidden = true;
+    }
+  }
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-signin]')) signIn();
+    const menu = $('acctMenu');
+    if (!menu.hidden && !e.target.closest('#acctMenu, #acctBtn')) menu.hidden = true;
+  });
+  $('acctBtn').onclick = () => { if (user) $('acctMenu').hidden = !$('acctMenu').hidden; else signIn(); };
+  $('signOutBtn').onclick = async () => {
+    $('acctMenu').hidden = true;
+    try { await cloud.signOut(cloud.auth); toast('Signed out. Your streak stays on this browser too.'); } catch (e) {}
+  };
+
+  async function signIn() {
+    if (!cloud) return;
+    const provider = new cloud.GoogleAuthProvider();
+    try { await cloud.signInWithPopup(cloud.auth, provider); }
+    catch (e) {
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+        try { await cloud.signInWithRedirect(cloud.auth, provider); } catch (e2) { toast('Sign-in failed. Please try again.'); }
+      } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+        console.warn('sign-in', e); toast('Sign-in failed. Please try again.');
+      }
+    }
+  }
+
+  /** Save this browser's streak and score to the signed-in account (debounced). */
+  function pushCloud() {
+    if (!cloud || !user) return;
+    clearTimeout(pushT);
+    const uid = user.uid;
+    pushT = setTimeout(async () => {
+      try {
+        await cloud.setDoc(cloud.doc(cloud.db, 'users', uid), {
+          daily: store.get('prep:daily', {}), sort: { sorted: score.sorted, streak: score.streak, best: score.best },
+          updatedAt: cloud.serverTimestamp(),
+        }, { merge: true });
+      } catch (e) { console.warn('sync', e); toast("Couldn't save your streak right now."); }
+    }, 600);
+  }
+  /** On sign-in: combine the account's copy with this browser's, keep both in step. */
+  async function pullCloud(u) {
+    try {
+      const snap = await cloud.getDoc(cloud.doc(cloud.db, 'users', u.uid));
+      const remote = snap.exists() ? snap.data() : {};
+      store.set('prep:daily', mergeDaily(store.get('prep:daily', {}), remote.daily));
+      Object.assign(score, mergeSort(score, remote.sort));
+      store.set('prep:sort', score);
+      showScore();
+      if (DATA) renderDaily(todays());
+      pushCloud();
+    } catch (e) { console.warn('sync', e); toast("Signed in, but your streak couldn't be loaded."); }
+  }
+
+  (async () => {
+    try {
+      const [app, auth, fs] = await Promise.all(['firebase-app', 'firebase-auth', 'firebase-firestore-lite'].map(m => import(FB + m + '.js')));
+      const fbApp = app.initializeApp(FIREBASE);
+      cloud = { ...auth, ...fs, auth: auth.getAuth(fbApp), db: fs.getFirestore(fbApp) };
+      renderSync();
+      cloud.onAuthStateChanged(cloud.auth, u => {
+        const was = user && user.uid;
+        user = u;
+        renderSync();
+        if (u && u.uid !== was) pullCloud(u);
+      });
+    } catch (e) { console.warn('Google sign-in unavailable', e); } // offline or blocked: the hub works as a guest
+  })();
 
   const start = readUrl();
   show(start.key, start.sub, start.hash);
