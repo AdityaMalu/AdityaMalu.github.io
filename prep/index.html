@@ -999,7 +999,7 @@
   const moving = [];
   let zones = [];
   const box = () => mode === 'float' ? layer : tray;
-  const target = () => mode === 'float' ? 6 : innerWidth < 600 ? 4 : 5;
+  const target = () => mode === 'float' ? 20 : innerWidth < 600 ? 4 : 5;
   function computeZones() {
     if (mode === 'float') {
       const content = Math.min(1120, innerWidth - 32), g = (innerWidth - content) / 2, h = layer.clientHeight;
