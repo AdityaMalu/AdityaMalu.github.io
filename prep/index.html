@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Interview Prep · Aditya Malu</title>
-<meta name="description" content="Four interview-prep tools in one place: AlgoScope (DSA traces), Java Concepts Stepper, DB Concepts Stepper and MachineCodingLab (LLD practice).">
+<meta name="description" content="Five interview-prep tools in one place: AlgoScope (DSA traces), Java, DB and OS Concepts Steppers, and MachineCodingLab (LLD practice).">
 <meta property="og:title" content="Interview Prep · Aditya Malu">
 <meta property="og:description" content="DSA traces, Java internals, database concepts and machine coding practice.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311202b'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' font-weight='700' text-anchor='middle' fill='%23f2b880'%3Eam%3C/text%3E%3C/svg%3E">
@@ -169,6 +169,20 @@
   .obj.unreach { border-style: dashed; border-color: var(--bad); opacity: .75; }
   .obj.gone { opacity: 0; transform: translateY(6px) scale(.9); }
   .obj .e { color: var(--accent); }
+
+  /* round robin Gantt */
+  .rq { margin-top: 14px; display: flex; gap: 10px; align-items: center; }
+  .rq .h { font: 600 10px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+  .rq .q b { display: inline-block; border: 1px solid var(--line); border-radius: 6px; padding: 0 7px; margin-right: 4px; color: var(--bright); font-weight: 500; }
+  .gantt { position: relative; height: 34px; margin-top: 18px; border: 1px dashed var(--line); border-radius: 7px; }
+  .gantt .seg {
+    position: absolute; top: 3px; bottom: 3px; border-radius: 5px; display: grid; place-items: center;
+    color: var(--bg); font-weight: 600; font-size: 11.5px; opacity: 0; transform: scaleX(.2); transform-origin: left;
+    transition: opacity .3s, transform .45s cubic-bezier(.3,.7,.3,1);
+  }
+  .gantt .seg.on { opacity: 1; transform: none; }
+  .ticks { position: relative; height: 16px; margin-top: 3px; }
+  .ticks span { position: absolute; transform: translateX(-50%); font-size: 10.5px; color: var(--soft); }
 
   /* B+ tree */
   .tree { position: relative; height: 110px; margin-top: 16px; }
@@ -371,6 +385,7 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+  @media (max-width: 400px) { .tab { padding: 7px 5px !important; font-size: 13.5px !important; } .tabs { gap: 0; } }
   @media (max-width: 640px) {
     .brand .long { display: none; }
     .tab { padding: 7px 8px; font-size: 14px; }
@@ -419,7 +434,7 @@
         <div>
           <p class="kicker">Backend interview prep</p>
           <h1>Interview prep, <span>step by step</span></h1>
-          <p class="lede">Four tools I built while preparing for backend interviews: DSA, Java, databases and machine coding. Each one stays a separate app with its own repo, and they all open here with shareable links.</p>
+          <p class="lede">Five tools I built while preparing for backend interviews: DSA, Java, databases, operating systems and machine coding. Each one stays a separate app with its own repo, and they all open here with shareable links.</p>
           <div class="sortbar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5M12 10V4a1.5 1.5 0 0 1 3 0v6M15 10V6a1.5 1.5 0 0 1 3 0v7a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.6-2.2L3.5 14a1.5 1.5 0 0 1 2.3-1.9L9 15V8a1.5 1.5 0 0 1 3 0"/></svg>
             <span id="sortHint">Drag the floating concepts onto the tool they belong to.</span>
@@ -451,6 +466,9 @@
     { key: 'db', name: 'DB Stepper', short: 'DB', full: 'DB Concepts Stepper', path: '/DBVisualizer/', repo: 'AdityaMalu/DBVisualizer',
       blurb: '71 database topics from SQL to distributed systems, with runnable SQLite examples, auto-checked exercises and quizzes.',
       stat: 'Indexes · transactions · MVCC · sharding' },
+    { key: 'os', name: 'OS Stepper', short: 'OS', full: 'OS Concepts Stepper', path: '/OSVisualizer/', repo: 'AdityaMalu/OSVisualizer',
+      blurb: '59 operating-system topics from system calls to containers, with in-browser scheduling, paging, disk and deadlock simulators, auto-checked exercises and quizzes.',
+      stat: 'Scheduling · paging · deadlocks · sync' },
     { key: 'lab', name: 'Machine Coding', short: 'LLD', full: 'MachineCodingLab', origin: 'https://machine-coding-lab.onrender.com', path: '/', repo: 'AdityaMalu/machine-coding-lab',
       blurb: '18 machine coding and LLD tasks (rate limiter, LRU cache, job queue…). Edit in the browser and run real test suites in Java, Python, Go or C++.',
       stat: 'Runs on a free server: the first load can take ~30 s' },
@@ -583,6 +601,33 @@
               l.classList.toggle('on', f.step >= 2 && i === f.leaf);
               [...l.children].forEach(sp => sp.classList.toggle('hit', f.step >= 3 && i === f.leaf && +sp.textContent === f.key));
             });
+            el.querySelector('.note').innerHTML = f.note;
+          };
+        },
+      };
+    })(),
+
+    os: (() => {
+      // round robin, quantum 2: P1 = 5, P2 = 3, P3 = 1 (all arrive at 0)
+      const SEG = [['P1', 0, 2], ['P2', 2, 4], ['P3', 4, 5], ['P1', 5, 7], ['P2', 7, 8], ['P1', 8, 9]];
+      const Q = [['P2', 'P3', 'P1'], ['P3', 'P1', 'P2'], ['P1', 'P2'], ['P2', 'P1'], ['P1'], []];
+      const NOTE = ['<b>P1</b> runs one 2 ms slice, then goes to the back of the queue', '<b>P2</b> gets its turn: nobody waits long', '<b>P3</b> needs 1 ms and finishes early', '<b>P1</b> again: round robin is fair', '<b>P2</b> finishes', '<b class="ok">All done at t = 9</b>, average wait 3.33 ms'];
+      const frames = [{ n: 0, note: 'Round robin, quantum 2 ms: three processes share one CPU', ms: 1100 }];
+      SEG.forEach((_, i) => frames.push({ n: i + 1, note: NOTE[i], ms: i === SEG.length - 1 ? 2400 : 1250 }));
+      return {
+        frames, still: 6,
+        build(el) {
+          const col = { P1: 'var(--accent)', P2: 'var(--ok)', P3: '#c98a2b' };
+          el.append(h(`<div class="cap"><span>algo: RR · quantum: 2</span><span class="r">CPU scheduler</span></div>
+            <div class="rq"><span class="h">ready queue</span><span class="q"></span></div>
+            <div class="gantt">${SEG.map(([p, a, b]) => `<div class="seg" style="left:${a / 9 * 100}%;width:${(b - a) / 9 * 100}%;background:${col[p]}">${p}</div>`).join('')}</div>
+            <div class="ticks">${[0, 2, 4, 5, 7, 8, 9].map(t => `<span style="left:${t / 9 * 100}%">${t}</span>`).join('')}</div>
+            <div class="note"></div>`));
+          const segs = [...el.querySelectorAll('.seg')], q = el.querySelector('.q');
+          return f => {
+            segs.forEach((g, i) => g.classList.toggle('on', i < f.n));
+            const rq = f.n ? Q[f.n - 1] : ['P1', 'P2', 'P3'];
+            q.innerHTML = rq.length ? rq.map(p => `<b>${p}</b>`).join(' ') : '<span class="ok">empty</span>';
             el.querySelector('.note').innerHTML = f.note;
           };
         },
@@ -836,7 +881,7 @@
   function pool() {
     if (POOL || !DATA) return POOL;
     POOL = [];
-    for (const key of ['java', 'db']) for (const t of DATA.steppers[key])
+    for (const key of ['java', 'db', 'os']) for (const t of DATA.steppers[key] || [])
       t.quiz.forEach((q, i) => { if (q[4] !== 'H') POOL.push({ key, t, q, i }); });
     return POOL;
   }
@@ -897,7 +942,7 @@
     return `<svg class="ring" viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="21"/><circle class="val" cx="26" cy="26" r="21" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}"/></svg>`;
   }
   function quizStats(key, prefix) {
-    const best = store.get(prefix + '-quiz-best-v1', {}), topics = DATA ? DATA.steppers[key] : [];
+    const best = store.get(prefix + '-quiz-best-v1', {}), topics = (DATA && DATA.steppers[key]) || [];
     let quizzed = 0, aced = 0;
     for (const t of topics) {
       const b = best[t.id];
@@ -911,13 +956,15 @@
     const el = $('progress');
     if (!DATA) { dataReady.then(d => d && renderProgress()); return; }
     const viewed = store.get('algoscope:viewed', []).length, nAlgo = DATA.algo.length;
-    const jv = quizStats('java', 'jv'), db = quizStats('db', 'dbv');
-    const ex = Object.values(store.get('dbv-ex-done-v1', {})).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
+    const jv = quizStats('java', 'jv'), db = quizStats('db', 'dbv'), os = quizStats('os', 'osv');
+    const solved = k => Object.values(store.get(k, {})).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
+    const ex = solved('dbv-ex-done-v1'), osEx = solved('osv-ex-done-v1');
     const lab = store.get('prep:lab', null), last = store.get('prep:last', null);
     const tiles = [
       { key: 'algo', f: viewed / nAlgo, n: viewed, of: nAlgo, lbl: 'problems traced', sub: 'in AlgoScope' },
       { key: 'java', f: jv.quizzed / jv.total, n: jv.quizzed, of: jv.total, lbl: 'Java topics quizzed', sub: `${jv.aced} aced` },
       { key: 'db', f: db.quizzed / db.total, n: db.quizzed, of: db.total, lbl: 'DB topics quizzed', sub: `${db.aced} aced · ${ex} exercises solved` },
+      { key: 'os', f: os.total ? os.quizzed / os.total : 0, n: os.quizzed, of: os.total || 59, lbl: 'OS topics quizzed', sub: `${os.aced} aced · ${osEx} exercises solved` },
       lab ? { key: 'lab', f: lab.solved / (lab.total || 1), n: lab.solved, of: lab.total, lbl: 'lab projects solved', sub: lab.lang ? `in ${lab.lang}` : '' }
           : { key: 'lab', f: 0, n: '–', of: DATA.lab.length, lbl: 'lab projects solved', sub: 'Open the lab once to sync' },
     ];
@@ -926,7 +973,7 @@
       const what = titleFor(last.key, last.sub || '', last.hash || '');
       cont = `<button type="button" class="cont" id="contBtn">Continue: ${esc(byKey[last.key].name)}${what ? ' · ' + esc(what) : ''} →</button>`;
     }
-    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all four tools, saved in this browser</span>${cont}</div>
+    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all five tools, saved in this browser</span>${cont}</div>
       <div class="tiles">${tiles.map(t => `<button type="button" class="tile" data-key="${t.key}">${ring(t.f)}
         <span><span class="n">${t.n}<small> / ${t.of}</small></span><br><span class="lbl">${t.lbl}</span><br><span class="sub">${esc(t.sub)}</span></span></button>`).join('')}</div>`;
     el.querySelectorAll('.tile').forEach(b => b.onclick = () => show(b.dataset.key));
@@ -966,6 +1013,16 @@
     ['Raft', 'db', '#t8-7', 'A leader is elected per term and log entries commit on a majority.'],
     ['LSM tree', 'db', '#t4-7', 'Buffer writes in memory, flush sorted runs, merge them later.'],
     ['Write skew', 'db', '#t6-7', 'Two transactions read the same rows and write different ones; only SERIALIZABLE stops it.'],
+    ['Round robin', 'os', '#t3-4', 'Each process gets one time quantum, then goes to the back of the ready queue.'],
+    ["Belady's anomaly", 'os', '#t7-2', 'Under FIFO, more page frames can cause more page faults.'],
+    ["Banker's algorithm", 'os', '#t5-3', 'Grant a request only if some order still lets every process finish.'],
+    ['Copy-on-write fork', 'os', '#t7-5', 'Parent and child share pages read-only until one of them writes.'],
+    ['Zombie process', 'os', '#t1-4', 'Exited but not yet reaped: only its pid and exit status remain.'],
+    ['Priority inversion', 'os', '#t5-5', 'High waits for low, which medium preempts; priority inheritance fixes it.'],
+    ['TLB', 'os', '#t6-4', 'A tiny cache of page translations; locality keeps the hit ratio near 99%.'],
+    ['Thrashing', 'os', '#t7-4', 'Working sets exceed RAM, so processes page instead of computing.'],
+    ['epoll', 'os', '#t9-2', 'One thread waits on thousands of sockets and wakes only for the ready ones.'],
+    ['Condition variable', 'os', '#t4-5', 'Always wait in a while loop: wakeups can be spurious or stale.'],
     ['Token bucket', 'lab', 'p/rate-limiter', 'Refill tokens over time and spend one per request; bursts up to capacity.'],
     ['Base62 short codes', 'lab', 'p/url-shortener', 'Encode a counter or hash in [0-9a-zA-Z] for short, unique links.'],
     ['Retry with backoff', 'lab', 'p/job-queue', 'Wait longer after each failure and add jitter so retries don’t stampede.'],

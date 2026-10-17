@@ -1,4 +1,4 @@
-"""Builds prep/data.json for the /prep hub: quiz questions and topic lists from the two Concepts Steppers,
+"""Builds prep/data.json for the /prep hub: quiz questions and topic lists from the three Concepts Steppers,
 plus AlgoScope problem ids and MachineCodingLab project ids.
 
 The steppers keep their content in JavaScript, so this loads each live page in a headless browser and reads
@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 SITE = "https://adityamalu.github.io"
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prep", "data.json")
 
-STEPPERS = {"java": f"{SITE}/java-visualizer/", "db": f"{SITE}/DBVisualizer/"}
+STEPPERS = {"java": f"{SITE}/java-visualizer/", "db": f"{SITE}/DBVisualizer/", "os": f"{SITE}/OSVisualizer/"}
 READ_TOPICS = """() => T.map(t => ({ id: t.id, no: t.no, title: t.title, imp: t.imp,
   quiz: (t.quiz || []).map(([q, o, a, w, l]) => [q, o, a, w, l]) }))"""
 
