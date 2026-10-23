@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Interview Prep · Aditya Malu</title>
-<meta name="description" content="Five interview-prep tools in one place: AlgoScope (DSA traces), Java, DB and OS Concepts Steppers, and MachineCodingLab (LLD practice).">
+<meta name="description" content="Six interview-prep tools in one place: AlgoScope (DSA traces), Java, DB and OS Concepts Steppers, Backpressure (system design with a live simulator) and MachineCodingLab (LLD practice).">
 <meta property="og:title" content="Interview Prep · Aditya Malu">
-<meta property="og:description" content="DSA traces, Java internals, database concepts and machine coding practice.">
+<meta property="og:description" content="DSA traces, Java internals, database and OS concepts, system design simulations and machine coding practice.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311202b'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' font-weight='700' text-anchor='middle' fill='%23f2b880'%3Eam%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,6 +183,31 @@
   .gantt .seg.on { opacity: 1; transform: none; }
   .ticks { position: relative; height: 16px; margin-top: 3px; }
   .ticks span { position: absolute; transform: translateX(-50%); font-size: 10.5px; color: var(--soft); }
+
+  /* system design: users → API → cache / DB */
+  .sdg { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1.3fr; align-items: center; margin-top: 24px; }
+  .sdn {
+    position: relative; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-raise); padding: 6px 8px;
+    color: var(--bright); text-align: center; font-weight: 500; transition: border-color .3s, opacity .4s, transform .4s, box-shadow .3s;
+  }
+  .sdn small { display: block; font-size: 10.5px; color: var(--soft); font-weight: 400; white-space: nowrap; }
+  .sdstack { display: flex; flex-direction: column; gap: 9px; }
+  .sdn.none { opacity: 0; transform: translateY(-6px) scale(.92); }
+  .sdn.new { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+  .sdn.on { border-color: var(--ok); }
+  .sdn.cold { border-color: #c98a2b; }
+  .sdn.down { opacity: .45; border-style: dashed; border-color: var(--bad); }
+  .sdn.down small { color: var(--bad); }
+  .sdn.hot { border-color: var(--bad); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bad) 22%, transparent); }
+  .sdn.hot small { color: var(--bad); }
+  .sdbar { display: block; height: 4px; margin-top: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .sdbar i { display: block; height: 100%; width: 0; transition: width .5s, background .3s; }
+  .wire { position: relative; height: 2px; margin: 0 3px; background: var(--line); }
+  .wire::after { content: ''; position: absolute; top: -2px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: sdflow 1s linear infinite; }
+  .wire.fast::after { animation-duration: .5s; }
+  .wire.w2.bad::after { background: var(--bad); }
+  @keyframes sdflow { to { left: calc(100% - 6px); } }
+  @media (prefers-reduced-motion: reduce) { .wire::after { animation: none; } }
 
   /* B+ tree */
   .tree { position: relative; height: 110px; margin-top: 16px; }
@@ -385,7 +410,7 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-  @media (max-width: 400px) { .tab { padding: 7px 5px !important; font-size: 13.5px !important; } .tabs { gap: 0; } }
+  @media (max-width: 400px) { .tab { padding: 7px 3px !important; font-size: 12.5px !important; } .tabs { gap: 0; } .tools { gap: 2px; } }
   @media (max-width: 640px) {
     .brand .long { display: none; }
     .tab { padding: 7px 8px; font-size: 14px; }
@@ -434,7 +459,7 @@
         <div>
           <p class="kicker">Backend interview prep</p>
           <h1>Interview prep, <span>step by step</span></h1>
-          <p class="lede">Five tools I built while preparing for backend interviews: DSA, Java, databases, operating systems and machine coding. Each one stays a separate app with its own repo, and they all open here with shareable links.</p>
+          <p class="lede">Six tools I built while preparing for backend interviews: DSA, Java, databases, operating systems, system design and machine coding. Each one stays a separate app with its own repo, and they all open here with shareable links.</p>
           <div class="sortbar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5M12 10V4a1.5 1.5 0 0 1 3 0v6M15 10V6a1.5 1.5 0 0 1 3 0v7a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.6-2.2L3.5 14a1.5 1.5 0 0 1 2.3-1.9L9 15V8a1.5 1.5 0 0 1 3 0"/></svg>
             <span id="sortHint">Drag the floating concepts onto the tool they belong to.</span>
@@ -469,6 +494,9 @@
     { key: 'os', name: 'OS Stepper', short: 'OS', full: 'OS Concepts Stepper', path: '/OSVisualizer/', repo: 'AdityaMalu/OSVisualizer',
       blurb: '59 operating-system topics from system calls to containers, with in-browser scheduling, paging, disk and deadlock simulators, auto-checked exercises and quizzes.',
       stat: 'Scheduling · paging · deadlocks · sync' },
+    { key: 'sd', name: 'System Design', short: 'SD', full: 'Backpressure: System Design', path: '/backpressure/', repo: 'AdityaMalu/backpressure',
+      blurb: 'A 12-week system design course with a live traffic simulator. Drag in load balancers, caches, queues and databases, push traffic through them, then break things. 29 lessons with labs, from caching and sharding to designing WhatsApp and Uber.',
+      stat: 'Caching · queues · CAP · real-world designs' },
     { key: 'lab', name: 'Machine Coding', short: 'LLD', full: 'MachineCodingLab', origin: 'https://machine-coding-lab.onrender.com', path: '/', repo: 'AdityaMalu/machine-coding-lab',
       blurb: '18 machine coding and LLD tasks (rate limiter, LRU cache, job queue…). Edit in the browser and run real test suites in Java, Python, Go or C++.',
       stat: 'Runs on a free server: the first load can take ~30 s' },
@@ -628,6 +656,49 @@
             segs.forEach((g, i) => g.classList.toggle('on', i < f.n));
             const rq = f.n ? Q[f.n - 1] : ['P1', 'P2', 'P3'];
             q.innerHTML = rq.length ? rq.map(p => `<b>${p}</b>`).join(' ') : '<span class="ok">empty</span>';
+            el.querySelector('.note').innerHTML = f.note;
+          };
+        },
+      };
+    })(),
+
+    sd: (() => {
+      // the caching lab in miniature: the DB saturates, a cache fixes it, the cache dies, coalescing saves the cold start
+      const F = (cache, db, hit, p99, note, ms, wire = '') => ({ cache, db, hit, p99, note, ms, wire });
+      const frames = [
+        F('none', 40, 0, '120 ms', 'Users send <b>3k reads/s</b> through the API to one database', 1300),
+        F('none', 78, 0, '480 ms', 'Traffic climbs to 8k/s and the database runs hot', 1300, 'fast'),
+        F('none', 100, 0, '2.4 s', '<b class="bad">Database saturation:</b> queries queue faster than they drain', 2000, 'fast bad'),
+        F('new', 100, 0, '2.4 s', 'Add a <b>Redis</b> cache in front of the database', 1300, 'fast'),
+        F('on', 22, 95, '90 ms', '<b class="ok">95% of reads hit the cache.</b> The database relaxes.', 2000, 'fast'),
+        F('down', 100, 0, '3.1 s', '💥 The cache crashes: every read falls through to the DB', 1800, 'fast bad'),
+        F('cold', 64, 60, '310 ms', 'It restarts cold; <b>request coalescing</b> stops a stampede', 1600, 'fast'),
+        F('on', 22, 95, '90 ms', '<b class="ok">Recovered.</b> Now try it with real traffic.', 2400, 'fast'),
+      ];
+      return {
+        frames, still: 4,
+        build(el) {
+          el.append(h(`<div class="cap"><span>lab: cache it · Backpressure</span><span class="r">p99 <b class="p99"></b></span></div>
+            <div class="sdg">
+              <div class="sdn">Users<small>clients</small></div><div class="wire"></div>
+              <div class="sdn">API<small>4 servers</small></div><div class="wire w2"></div>
+              <div class="sdstack">
+                <div class="sdn sdc">Redis<small class="hit"></small></div>
+                <div class="sdn sdb">Postgres<small class="ld"></small><span class="sdbar"><i></i></span></div>
+              </div>
+            </div>
+            <div class="note"></div>`));
+          const c = el.querySelector('.sdc'), d = el.querySelector('.sdb'), bar = el.querySelector('.sdbar i'), wires = el.querySelectorAll('.wire');
+          return f => {
+            c.className = 'sdn sdc ' + f.cache;
+            c.querySelector('.hit').textContent = f.cache === 'down' ? 'DOWN' : f.cache === 'none' || f.cache === 'new' ? 'cache' : `hit ${f.hit}%`;
+            const hot = f.db >= 95, warm = f.db >= 70;
+            d.className = 'sdn sdb' + (hot ? ' hot' : '');
+            d.querySelector('.ld').textContent = hot ? 'SATURATED' : `load ${f.db}%`;
+            bar.style.width = f.db + '%';
+            bar.style.background = hot ? 'var(--bad)' : warm ? '#c98a2b' : 'var(--ok)';
+            wires.forEach(w => { w.className = 'wire' + (w.classList.contains('w2') ? ' w2' : '') + (f.wire ? ' ' + f.wire : ''); });
+            el.querySelector('.p99').textContent = f.p99;
             el.querySelector('.note').innerHTML = f.note;
           };
         },
@@ -825,7 +896,7 @@
     catch (e) { prompt('Copy this link:', location.href); }
   };
 
-  // keyboard: Alt+0..4 switches tabs
+  // keyboard: Alt+0..6 switches tabs
   addEventListener('keydown', e => {
     if (!e.altKey || e.ctrlKey || e.metaKey) return;
     const k = ['home', ...APPS.map(a => a.key)][+e.key];
@@ -881,7 +952,7 @@
   function pool() {
     if (POOL || !DATA) return POOL;
     POOL = [];
-    for (const key of ['java', 'db', 'os']) for (const t of DATA.steppers[key] || [])
+    for (const key of ['java', 'db', 'os', 'sd']) for (const t of DATA.steppers[key] || [])
       t.quiz.forEach((q, i) => { if (q[4] !== 'H') POOL.push({ key, t, q, i }); });
     return POOL;
   }
@@ -960,11 +1031,15 @@
     const solved = k => Object.values(store.get(k, {})).reduce((n, a) => n + (Array.isArray(a) ? a.length : 0), 0);
     const ex = solved('dbv-ex-done-v1'), osEx = solved('osv-ex-done-v1');
     const lab = store.get('prep:lab', null), last = store.get('prep:last', null);
+    // Backpressure keeps passed labs under backpressure.v1 → completed (same origin, so readable here)
+    const sdDone = Object.keys((store.get('backpressure.v1', {}) || {}).completed || {}).length;
+    const sdTotal = ((DATA.steppers.sd || []).length) || 29;
     const tiles = [
       { key: 'algo', f: viewed / nAlgo, n: viewed, of: nAlgo, lbl: 'problems traced', sub: 'in AlgoScope' },
       { key: 'java', f: jv.quizzed / jv.total, n: jv.quizzed, of: jv.total, lbl: 'Java topics quizzed', sub: `${jv.aced} aced` },
       { key: 'db', f: db.quizzed / db.total, n: db.quizzed, of: db.total, lbl: 'DB topics quizzed', sub: `${db.aced} aced · ${ex} exercises solved` },
       { key: 'os', f: os.total ? os.quizzed / os.total : 0, n: os.quizzed, of: os.total || 59, lbl: 'OS topics quizzed', sub: `${os.aced} aced · ${osEx} exercises solved` },
+      { key: 'sd', f: sdDone / sdTotal, n: sdDone, of: sdTotal, lbl: 'system design labs passed', sub: sdDone ? 'in Backpressure' : 'Pass a lab to start' },
       lab ? { key: 'lab', f: lab.solved / (lab.total || 1), n: lab.solved, of: lab.total, lbl: 'lab projects solved', sub: lab.lang ? `in ${lab.lang}` : '' }
           : { key: 'lab', f: 0, n: '–', of: DATA.lab.length, lbl: 'lab projects solved', sub: 'Open the lab once to sync' },
     ];
@@ -973,7 +1048,7 @@
       const what = titleFor(last.key, last.sub || '', last.hash || '');
       cont = `<button type="button" class="cont" id="contBtn">Continue: ${esc(byKey[last.key].name)}${what ? ' · ' + esc(what) : ''} →</button>`;
     }
-    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all five tools, saved in this browser</span>${cont}</div>
+    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all six tools, saved in this browser</span>${cont}</div>
       <div class="tiles">${tiles.map(t => `<button type="button" class="tile" data-key="${t.key}">${ring(t.f)}
         <span><span class="n">${t.n}<small> / ${t.of}</small></span><br><span class="lbl">${t.lbl}</span><br><span class="sub">${esc(t.sub)}</span></span></button>`).join('')}</div>`;
     el.querySelectorAll('.tile').forEach(b => b.onclick = () => show(b.dataset.key));
@@ -1023,6 +1098,17 @@
     ['Thrashing', 'os', '#t7-4', 'Working sets exceed RAM, so processes page instead of computing.'],
     ['epoll', 'os', '#t9-2', 'One thread waits on thousands of sockets and wakes only for the ready ones.'],
     ['Condition variable', 'os', '#t4-5', 'Always wait in a while loop: wakeups can be spurious or stale.'],
+    ['Cache stampede', 'sd', '#/caching', 'A hot key expires and thousands of misses hit the DB at once; coalesce them.'],
+    ["Little's law", 'sd', '#/latency-throughput', 'In-flight = arrival rate × time held, so one slow call can drain a whole thread pool.'],
+    ['Circuit breaker', 'sd', '#/resilience', 'Stop calling a failing dependency, fail fast, and probe again later.'],
+    ['CAP theorem', 'sd', '#/cap', 'During a partition you keep consistency or availability, never both.'],
+    ['Read-your-writes', 'sd', '#/eventual-consistency', 'Right after a user writes, read their data from the primary so they see the change.'],
+    ['Consumer groups', 'sd', '#/kafka', 'Each partition goes to one consumer per group, so partitions cap parallelism.'],
+    ['Fan-out on write', 'sd', '#/instagram', "Push posts into followers' timelines; pull celebrity posts at read time instead."],
+    ['Transactional outbox', 'sd', '#/event-driven', 'Write the row and the event in one transaction; a relay publishes the event.'],
+    ['Gray failure', 'sd', '#/load-balancing', 'A slow node that still passes health checks; outlier detection ejects it.'],
+    ['RPO and RTO', 'sd', '#/disaster-recovery', 'How much data you can afford to lose, and how long you can be down.'],
+    ['Idempotency key', 'sd', '#/payments', 'Every retry carries the same key, so the customer is charged once.'],
     ['Token bucket', 'lab', 'p/rate-limiter', 'Refill tokens over time and spend one per request; bursts up to capacity.'],
     ['Base62 short codes', 'lab', 'p/url-shortener', 'Encode a counter or hash in [0-9a-zA-Z] for short, unique links.'],
     ['Retry with backoff', 'lab', 'p/job-queue', 'Wait longer after each failure and add jitter so retries don’t stampede.'],
