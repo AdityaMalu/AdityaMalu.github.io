@@ -1485,7 +1485,7 @@
     try {
       const [app, auth, fs] = await Promise.all(['firebase-app', 'firebase-auth', 'firebase-firestore-lite'].map(m => import(FB + m + '.js')));
       const fbApp = app.initializeApp(FIREBASE);
-      cloud = { ...auth, ...fs, auth: auth.getAuth(fbApp), db: fs.getFirestore(fbApp) };
+      cloud = { ...auth, ...fs, auth: auth.getAuth(fbApp), db: fs.getFirestore(fbApp, 'default') }; // the database was created with the id "default", not "(default)"
       renderSync();
       cloud.onAuthStateChanged(cloud.auth, u => {
         const was = user && user.uid;
