@@ -10,7 +10,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311202b'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='17' font-weight='700' text-anchor='middle' fill='%23f2b880'%3Eam%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Karla:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" as="fetch" href="data.json" crossorigin="anonymous">
 <style>
   :root {
     --bg: #11202b;
@@ -1478,7 +1480,8 @@
     } catch (e) { console.warn('sync', e); toast("Signed in, but your streak couldn't be loaded."); }
   }
 
-  (async () => {
+  const whenIdle = fn => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 1200));
+  whenIdle(async () => {
     try {
       const [app, auth, fs] = await Promise.all(['firebase-app', 'firebase-auth', 'firebase-firestore-lite'].map(m => import(FB + m + '.js')));
       const fbApp = app.initializeApp(FIREBASE);
@@ -1491,10 +1494,11 @@
         if (u && u.uid !== was) pullCloud(u);
       });
     } catch (e) { console.warn('Google sign-in unavailable', e); } // offline or blocked: the hub works as a guest
-  })();
+  });
 
   const start = readUrl();
   show(start.key, start.sub, start.hash);
+  if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 })();
 </script>
 </body>
