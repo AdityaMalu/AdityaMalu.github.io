@@ -2,16 +2,19 @@ rules_version = '2';
 
 // Firestore rules for the /prep hub (Firebase project "interviewstepper").
 // Paste into Firebase console → Firestore → Rules → Publish.
-// Each signed-in user can read and write only their own document, users/<uid>,
-// holding just their daily streak and drag-to-sort score. Everything else is denied.
+// Each signed-in user can read and write only their own document, users/<uid>, holding their daily streak,
+// drag-to-sort score and their progress in each tool. Everything else is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['daily', 'sort', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['daily', 'sort', 'progress', 'updatedAt'])
         && (!('daily' in request.resource.data) || request.resource.data.daily is map)
-        && (!('sort' in request.resource.data) || request.resource.data.sort is map);
+        && (!('sort' in request.resource.data) || request.resource.data.sort is map)
+        && (!('progress' in request.resource.data) || (request.resource.data.progress is map
+            && request.resource.data.progress.keys().hasOnly(
+                 ['algoViewed', 'jvBest', 'dbvBest', 'dbvEx', 'osvBest', 'osvEx', 'sdDone', 'lab'])));
     }
   }
 }

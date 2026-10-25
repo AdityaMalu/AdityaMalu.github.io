@@ -880,6 +880,7 @@
     const a = APPS.find(x => x.origin === e.origin);
     if (a && e.data && e.data.type === 'hub:progress' && Number.isInteger(e.data.solved) && Number.isInteger(e.data.total)) {
       store.set('prep:lab', { solved: e.data.solved, total: e.data.total, lang: String(e.data.lang || '').slice(0, 20) });
+      if (e.data.progress && e.source === (frames.lab && frames.lab.contentWindow)) labStatuses(e.data.progress);
       return;
     }
     if (!a || !e.data || e.data.type !== 'hub:path' || typeof e.data.path !== 'string') return;
@@ -1050,7 +1051,7 @@
       const what = titleFor(last.key, last.sub || '', last.hash || '');
       cont = `<button type="button" class="cont" id="contBtn">Continue: ${esc(byKey[last.key].name)}${what ? ' · ' + esc(what) : ''} →</button>`;
     }
-    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all six tools, saved in this browser</span>${cont}</div>
+    el.innerHTML = `<div class="phead"><h2>Your progress</h2><span class="muted">from all six tools, ${user ? 'saved to your Google account' : 'saved in this browser'}</span>${cont}</div>
       <div class="tiles">${tiles.map(t => `<button type="button" class="tile" data-key="${t.key}">${ring(t.f)}
         <span><span class="n">${t.n}<small> / ${t.of}</small></span><br><span class="lbl">${t.lbl}</span><br><span class="sub">${esc(t.sub)}</span></span></button>`).join('')}</div>`;
     el.querySelectorAll('.tile').forEach(b => b.onclick = () => show(b.dataset.key));
@@ -1403,8 +1404,8 @@
 
   function syncNote() {
     if (!cloud) return '';
-    if (user) return 'Your streak is saved to your Google account.';
-    return '<button type="button" class="linkish" data-signin>Sign in with Google</button> to keep your streak on every device.';
+    if (user) return 'Your streak and progress are saved to your Google account.';
+    return '<button type="button" class="linkish" data-signin>Sign in with Google</button> to keep your streak and progress on every device.';
   }
   function renderSync() {
     const n = $('dsync');
@@ -1422,7 +1423,7 @@
       menu.querySelector('.who').innerHTML = `<b>${esc(user.displayName || '')}</b><span>${esc(user.email || '')}</span>`;
     } else {
       b.innerHTML = `${gIcon}<span class="t">Sign in</span>`;
-      b.title = 'Sign in with Google to keep your streak on every device';
+      b.title = 'Sign in with Google to keep your streak and progress on every device';
       b.setAttribute('aria-label', b.title);
       b.classList.remove('in');
       menu.hidden = true;
@@ -1436,7 +1437,7 @@
   $('acctBtn').onclick = () => { if (user) $('acctMenu').hidden = !$('acctMenu').hidden; else signIn(); };
   $('signOutBtn').onclick = async () => {
     $('acctMenu').hidden = true;
-    try { await cloud.signOut(cloud.auth); toast('Signed out. Your streak stays on this browser too.'); } catch (e) {}
+    try { await cloud.signOut(cloud.auth); toast('Signed out. Your progress stays on this browser too.'); } catch (e) {}
   };
 
   async function signIn() {
@@ -1452,21 +1453,133 @@
     }
   }
 
-  /** Save this browser's streak and score to the signed-in account (debounced). */
+  // ---------- progress sync: what you've done in every tool follows your Google account.
+  // Only progress, from this fixed list: never settings, layout, quiz rotation, and never the API keys AlgoScope
+  // keeps in this browser. The five tools on this site share its storage, so the hub reads and writes their
+  // keys directly; the lab (another site) sends its statuses with postMessage and gets merged ones back.
+  // Merges only ever add (a union, the best score, solved over attempted): a tool tab that was open with older
+  // data can rewrite this browser's copy, but never shrink what the account holds.
+  const LAB_ORIGIN = byKey.lab.origin;
+  const SYNC = {
+    algoViewed: { key: 'algoscope:viewed', app: 'algo', kind: 'list' },
+    jvBest: { key: 'jv-quiz-best-v1', app: 'java', kind: 'max' },
+    dbvBest: { key: 'dbv-quiz-best-v1', app: 'db', kind: 'max' },
+    dbvEx: { key: 'dbv-ex-done-v1', app: 'db', kind: 'lists' },
+    osvBest: { key: 'osv-quiz-best-v1', app: 'os', kind: 'max' },
+    osvEx: { key: 'osv-ex-done-v1', app: 'os', kind: 'lists' },
+    sdDone: { key: 'backpressure.v1', field: 'completed', app: 'sd', kind: 'first' },
+    lab: { key: 'prep:labsync', app: 'lab', kind: 'status' },
+  };
+  const SYNC_KEYS = new Set(Object.values(SYNC).map(s => s.key));
+  const okId = k => typeof k === 'string' && k.length <= 120;
+  const RANK = { attempted: 1, solved: 2 };
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+
+  /** Cleans one value of a kind (anything malformed is dropped) and merges two of them. */
+  const KINDS = {
+    list: {
+      clean: v => Array.isArray(v) ? v.filter(x => okId(x) || Number.isInteger(x)).slice(0, 5000) : [],
+      merge: (a, b) => [...new Set([...a, ...b])],
+    },
+    max: {
+      clean: v => isObj(v) ? Object.fromEntries(Object.entries(v).filter(([k, n]) => okId(k) && typeof n === 'number' && isFinite(n)).slice(0, 5000)) : {},
+      merge: (a, b) => { const o = { ...a }; for (const [k, n] of Object.entries(b)) if (!(o[k] >= n)) o[k] = n; return o; },
+    },
+    lists: {
+      clean: v => isObj(v) ? Object.fromEntries(Object.entries(v).filter(([k, l]) => okId(k) && Array.isArray(l))
+        .map(([k, l]) => [k, l.filter(x => Number.isInteger(x) || okId(x)).slice(0, 200)]).slice(0, 2000)) : {},
+      merge: (a, b) => { const o = { ...a }; for (const [k, l] of Object.entries(b)) o[k] = [...new Set([...(o[k] || []), ...l])]; return o; },
+    },
+    first: { // Backpressure: lesson id -> { at: when first passed, ... }; the earliest pass wins
+      clean: v => isObj(v) ? Object.fromEntries(Object.entries(v).filter(([k, e]) => okId(k) && isObj(e) && JSON.stringify(e).length < 500).slice(0, 500)) : {},
+      merge: (a, b) => { const o = { ...a }; for (const [k, e] of Object.entries(b)) if (!o[k] || (e.at || Infinity) < (o[k].at || Infinity)) o[k] = e; return o; },
+    },
+    status: { // the lab: "java:rate-limiter" -> attempted | solved
+      clean: v => isObj(v) ? Object.fromEntries(Object.entries(v).filter(([k, s]) => /^[a-z]{1,10}:[a-z0-9-]{1,64}$/.test(k) && RANK[s]).slice(0, 2000)) : {},
+      merge: (a, b) => { const o = { ...a }; for (const [k, s] of Object.entries(b)) if (RANK[s] > (RANK[o[k]] || 0)) o[k] = s; return o; },
+    },
+  };
+
+  function readLocal(name) {
+    const s = SYNC[name], raw = store.get(s.key, null);
+    return KINDS[s.kind].clean(s.field ? (raw || {})[s.field] : raw);
+  }
+  function writeLocal(name, value) {
+    const s = SYNC[name];
+    if (s.field) {
+      const obj = store.get(s.key, {});
+      store.set(s.key, { ...(isObj(obj) ? obj : {}), [s.field]: value });
+    } else store.set(s.key, value);
+  }
+  const localProgress = () => Object.fromEntries(Object.keys(SYNC).map(n => [n, readLocal(n)]));
+  function mergeProgress(a, b) {
+    const out = {};
+    for (const [n, s] of Object.entries(SYNC)) {
+      const k = KINDS[s.kind];
+      out[n] = k.merge(k.clean((a || {})[n]), k.clean((b || {})[n]));
+    }
+    return out;
+  }
+
+  /** Writes merged progress into this browser; reloads open tools whose data changed so they see it. */
+  function applyProgress(merged) {
+    const reload = new Set();
+    for (const n of Object.keys(SYNC)) {
+      if (JSON.stringify(readLocal(n)) === JSON.stringify(merged[n])) continue;
+      writeLocal(n, merged[n]);
+      if (SYNC[n].app !== 'lab') reload.add(SYNC[n].app);
+    }
+    for (const key of reload) if (frames[key]) try { frames[key].contentWindow.location.reload(); } catch (e) {}
+    sendLab();
+    if (current === 'home') renderProgress();
+  }
+
+  /** Gives the lab the merged statuses (it merges them into its own and reports back). */
+  function sendLab() {
+    const f = frames.lab;
+    if (f && f.contentWindow) f.contentWindow.postMessage({ type: 'hub:sync-apply', progress: readLocal('lab') }, LAB_ORIGIN);
+  }
+
+  // A tool on this site saved something: keep the account in step.
+  addEventListener('storage', e => {
+    if (!e.key || !SYNC_KEYS.has(e.key)) return;
+    pushCloud();
+    if (current === 'home') renderProgress();
+  });
+
+  /** The lab's statuses arrived (hub:progress carries them on the hosted site). */
+  function labStatuses(progress) {
+    const incoming = KINDS.status.clean(progress), mine = readLocal('lab');
+    const merged = KINDS.status.merge(mine, incoming);
+    if (JSON.stringify(merged) !== JSON.stringify(mine)) { writeLocal('lab', merged); pushCloud(); }
+    if (JSON.stringify(merged) !== JSON.stringify(incoming)) sendLab(); // the lab lacks some: send them over
+  }
+
+  /** Save this browser's streak, score and every tool's progress to the signed-in account (debounced). */
   function pushCloud() {
     if (!cloud || !user) return;
     clearTimeout(pushT);
     const uid = user.uid;
     pushT = setTimeout(async () => {
       try {
-        await cloud.setDoc(cloud.doc(cloud.db, 'users', uid), {
-          daily: store.get('prep:daily', {}), sort: { sorted: score.sorted, streak: score.streak, best: score.best },
-          updatedAt: cloud.serverTimestamp(),
-        }, { merge: true });
-      } catch (e) { console.warn('sync', e); toast("Couldn't save your streak right now."); }
-    }, 600);
+        // with the account's last known copy folded in, so a stale tab can't shrink it
+        const progress = mergeProgress(localProgress(), store.get('prep:sync-remote', {}));
+        const base = { daily: store.get('prep:daily', {}), sort: { sorted: score.sorted, streak: score.streak, best: score.best },
+          updatedAt: cloud.serverTimestamp() };
+        const ref = cloud.doc(cloud.db, 'users', uid);
+        try {
+          await cloud.setDoc(ref, { ...base, progress }, { merge: true });
+          store.set('prep:sync-remote', progress);
+        } catch (e) {
+          if (e.code !== 'permission-denied') throw e;
+          // Firestore rules from before progress sync (firestore.rules): still keep the streak and score
+          console.warn('progress sync: publish the new firestore.rules to save tool progress');
+          await cloud.setDoc(ref, base, { merge: true });
+        }
+      } catch (e) { console.warn('sync', e); toast("Couldn't save your progress right now."); }
+    }, 1500);
   }
-  /** On sign-in: combine the account's copy with this browser's, keep both in step. */
+  /** On sign-in: combine the account's copy with this browser's (streak, score, every tool), keep both in step. */
   async function pullCloud(u) {
     try {
       const snap = await cloud.getDoc(cloud.doc(cloud.db, 'users', u.uid));
@@ -1475,9 +1588,11 @@
       Object.assign(score, mergeSort(score, remote.sort));
       store.set('prep:sort', score);
       showScore();
+      store.set('prep:sync-remote', isObj(remote.progress) ? remote.progress : {});
+      applyProgress(mergeProgress(localProgress(), remote.progress));
       if (DATA) renderDaily(todays());
       pushCloud();
-    } catch (e) { console.warn('sync', e); toast("Signed in, but your streak couldn't be loaded."); }
+    } catch (e) { console.warn('sync', e); toast("Signed in, but your progress couldn't be loaded."); }
   }
 
   const whenIdle = fn => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 1200));
@@ -1490,6 +1605,7 @@
       cloud.onAuthStateChanged(cloud.auth, u => {
         const was = user && user.uid;
         user = u;
+        if (!u) store.set('prep:sync-remote', {}); // another account signing in here must not inherit it
         renderSync();
         if (u && u.uid !== was) pullCloud(u);
       });
